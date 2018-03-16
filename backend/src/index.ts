@@ -16,7 +16,11 @@ io.on('connection', (socket) => {
   io.emit('msg', 'testing');
   socket.on('cmsg', (msg)=>{
     console.log(msg);
-  })
+  });
+  socket.on('click', (msg)=>{
+    console.log(msg);
+    socket.emit('click', 'Button was clicked, and processed by the server');
+  });
   socket.on('disconnect', ()=>{
     console.log('User disconnected');
   })
