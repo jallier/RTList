@@ -21,6 +21,9 @@ io.on('connection', (socket) => {
     console.log(msg);
     socket.emit('click', 'Button was clicked, and processed by the server');
   });
+  socket.on('addItem', (item)=>{
+    console.log(item);
+  });
   socket.on('disconnect', ()=>{
     console.log('User disconnected');
   })

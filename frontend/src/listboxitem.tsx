@@ -13,17 +13,13 @@ interface ListItemState {
 }
 
 const style = {
-  backgroundColor: 'blue'
+  height: '50px',
+  borderBottom: '1px solid grey',
+  borderTop: '1px solid grey',
 };
 
-const listItemStyle = {
-  
-};
-
-// tslint:disable-next-line:no-any
 export class ListBoxItem extends React.Component<ListItemProps, ListItemState> {
-  // tslint:disable-next-line:no-any
-  constructor(props: any) {
+  constructor(props: ListItemProps) {
     super(props);
     this.state = { text: this.props.text };
 
