@@ -1,29 +1,23 @@
 import * as React from 'react';
 import { handleSocket } from './App';
 import { io } from './App';
-import List, { ListItem, ListItemText } from 'material-ui/List';
-import Checkbox from 'material-ui/Checkbox';
+import List from 'material-ui/List';
+import { ListBoxItem } from './listboxitem';
 
 interface ListItemProps {
   text: string;
 }
 
-export class ListBox extends React.Component<ListItemProps, ListItemProps> {
-  // tslint:disable-next-line:no-any
+interface ListBoxState {
+  text: string;
+  listItems: {}[];
+}
+
+export class ListBox extends React.Component<ListItemProps, ListBoxState> {
   constructor(props: ListItemProps) {
     super(props);
     handleSocket();
-    this.state = { text: this.props.text };
-
-    io.on('click', (msg: string) => {
-      this.setState({ text: msg });
-    });
-
-    this.handleClick = this.handleClick.bind(this);
-  }
-
-  public handleClick() {
-    io.emit('click', 'This is a click message');
+    this.state = { text: this.props.text, listItems: [] };
   }
 
   render() {
@@ -32,10 +26,8 @@ export class ListBox extends React.Component<ListItemProps, ListItemProps> {
         <div>This is a test {this.props.text}</div>
         <div>
           <List>
-            <ListItem onClick={this.handleClick}>
-              <Checkbox />
-              <ListItemText primary={this.state.text} />
-            </ListItem>
+            <ListBoxItem text="ayy lmao" />
+            <ListBoxItem text="List item number 2" />
           </List>
         </div>
       </div>
