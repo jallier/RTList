@@ -5,6 +5,7 @@ import { io } from './App';
 
 interface ListItemProps {
   text: string;
+  id: string;
 }
 
 interface ListItemState {

@@ -2,9 +2,16 @@ import * as express from 'express';
 import * as http from 'http';
 import * as socketio from 'socket.io';
 
+interface IItems {
+  id: string;
+  value: string;
+}
+
 let app = express();
 let serv = http.createServer(app);
 let io = socketio(serv);
+
+let items: IItems[] = [];
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
@@ -13,22 +20,22 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
   console.log('A user connected');
-  io.emit('msg', 'testing');
-  socket.on('cmsg', (msg)=>{
-    console.log(msg);
-  });
-  socket.on('click', (msg)=>{
+  socket.on('click', (msg: string) => {
     console.log(msg);
     socket.emit('click', 'Button was clicked, and processed by the server');
   });
-  socket.on('addItem', (item)=>{
-    console.log(item);
+  socket.on('addItem', (id: string, value: string) => {
+    console.log(id, value);
+    items.push({id, value});
+    socket.broadcast.emit('addRemoteItem', id, value);
   });
-  socket.on('disconnect', ()=>{
+  socket.on('disconnect', () => {
     console.log('User disconnected');
+    console.log(items);
+    items = [];
   })
 })
 
-serv.listen(3000, () => {
+serv.listen(3001, '0.0.0.0', () => {
   console.log('Listening');
 });

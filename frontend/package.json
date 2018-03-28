@@ -4,13 +4,15 @@
   "private": true,
   "dependencies": {
     "@types/socket.io-client": "^1.4.32",
+    "@types/uuid": "^3.4.3",
     "material-ui": "^1.0.0-beta.37",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-scripts-ts": "2.13.0",
     "socket.io-client": "^2.0.4",
     "styled-components": "^3.2.1",
-    "styled-jss": "^2.2.2"
+    "styled-jss": "^2.2.2",
+    "uuid": "^3.2.1"
   },
   "scripts": {
     "start": "react-scripts-ts start",

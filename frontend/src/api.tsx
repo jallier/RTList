@@ -1,6 +1,6 @@
 import * as socket from 'socket.io-client';
 
-const io = socket.connect('http://localhost:3000');
+const io = socket.connect('http://localhost:3001');
 export function handleSocket() {
   // tslint:disable-next-line:no-any
   io.on('msg', (msg: any) => {
