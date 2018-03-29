@@ -29,6 +29,10 @@ export class ListBox extends React.Component<ListItemProps, ListBoxState> {
     // tslint:disable-next-line:max-line-length
     this.state = { text: this.props.text, listItems: [{ id: uuid(), checked: false, text: 'This test comes from the state. Added in the constructor' }], input: '' };
 
+    io.on('click', (id: string, text: string, checked: boolean) => {
+      let a = 1;
+    });
+
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleListRemoteStateChange = this.handleListRemoteStateChange.bind(this);
@@ -59,6 +63,11 @@ export class ListBox extends React.Component<ListItemProps, ListBoxState> {
   // tslint:disable-next-line:no-any
   public handleChange(e: React.SyntheticEvent<any>) {
     this.setState({ input: e.currentTarget.value });
+  }
+
+  // tslint:disable-next-line:no-any
+  public handleClick(e: React.SyntheticEvent<any>) {
+    let a = 1;
   }
 
   render() {

@@ -9,7 +9,7 @@ interface ListItemProps {
 }
 
 interface ListItemState {
-  checked?: boolean;
+  checked: boolean;
   text: string;
 }
 
@@ -22,23 +22,20 @@ const style = {
 export class ListBoxItem extends React.Component<ListItemProps, ListItemState> {
   constructor(props: ListItemProps) {
     super(props);
-    this.state = { text: this.props.text };
-
-    io.on('click', (msg: string) => {
-      this.setState({ text: msg });
-    });
+    this.state = { text: this.props.text, checked: false };
 
     this.handleClick = this.handleClick.bind(this);
   }
 
   public handleClick() {
-    io.emit('click', 'This is a click message');
+    this.setState({ checked: !this.state.checked });
+    io.emit('click', this.props.id, this.state.text, !this.state.checked);
   }
 
   render() {
     return (
       <ListItem onClick={this.handleClick} style={style}>
-        <Checkbox />
+        <Checkbox checked={this.state.checked} />
         <ListItemText primary={this.state.text} />
       </ListItem>
     );

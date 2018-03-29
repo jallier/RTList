@@ -2,16 +2,17 @@ import * as express from 'express';
 import * as http from 'http';
 import * as socketio from 'socket.io';
 
-interface IItems {
-  id: string;
-  value: string;
+interface IListItem {
+  text: string;
+  checked: boolean;
 }
 
 let app = express();
 let serv = http.createServer(app);
 let io = socketio(serv);
 
-let items: IItems[] = [];
+// let items: { [id: string]: IItems } = { };
+let items: Map<string, IListItem> = new Map();
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
@@ -20,19 +21,21 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
   console.log('A user connected');
-  socket.on('click', (msg: string) => {
-    console.log(msg);
-    socket.emit('click', 'Button was clicked, and processed by the server');
+  socket.on('click', (id: string, text: string, checked: boolean) => {
+    console.log(id, { text, checked });
+    items.set(id, { text, checked });
+    console.log(items);
+    socket.broadcast.emit('click', id, text, checked); 
   });
-  socket.on('addItem', (id: string, value: string) => {
-    console.log(id, value);
-    items.push({id, value});
-    socket.broadcast.emit('addRemoteItem', id, value);
+  socket.on('addItem', (id: string, text: string) => {
+    console.log(id, text);
+    items.set(id, { text, checked: false })
+    socket.broadcast.emit('addRemoteItem', id, text);
   });
   socket.on('disconnect', () => {
     console.log('User disconnected');
     console.log(items);
-    items = [];
+    items.clear();
   })
 })
 
