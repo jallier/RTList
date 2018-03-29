@@ -3,14 +3,11 @@ import Checkbox from 'material-ui/Checkbox';
 import * as React from 'react';
 import { io } from './App';
 
-interface ListItemProps {
-  text: string;
+export interface ListBoxItemProps {
   id: string;
-}
-
-interface ListItemState {
-  checked: boolean;
   text: string;
+  checked: boolean;
+  clickHandler: any; // This is a function passed by the parent
 }
 
 const style = {
@@ -19,25 +16,21 @@ const style = {
   borderTop: '1px solid grey',
 };
 
-export class ListBoxItem extends React.Component<ListItemProps, ListItemState> {
-  constructor(props: ListItemProps) {
+export class ListBoxItem extends React.Component<ListBoxItemProps> {
+  constructor(props: ListBoxItemProps) {
     super(props);
-    this.state = { text: this.props.text, checked: false };
-
-    this.handleClick = this.handleClick.bind(this);
-  }
-
-  public handleClick() {
-    this.setState({ checked: !this.state.checked });
-    io.emit('click', this.props.id, this.state.text, !this.state.checked);
+    this.handleSubClick = this.handleSubClick.bind(this);
   }
 
   render() {
     return (
-      <ListItem onClick={this.handleClick} style={style}>
-        <Checkbox checked={this.state.checked} />
-        <ListItemText primary={this.state.text} />
+      <ListItem onClick={this.handleSubClick} style={style}>
+        <Checkbox checked={this.props.checked} />
+        <ListItemText primary={this.props.text} />
       </ListItem>
     );
+  }
+  private handleSubClick() {
+    this.props.clickHandler(this.props);
   }
 }

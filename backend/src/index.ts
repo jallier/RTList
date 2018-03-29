@@ -22,13 +22,13 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('A user connected');
   socket.on('click', (id: string, text: string, checked: boolean) => {
-    console.log(id, { text, checked });
+    console.log(id, { text, checked }, 'was clicked');
     items.set(id, { text, checked });
     console.log(items);
     socket.broadcast.emit('click', id, text, checked); 
   });
   socket.on('addItem', (id: string, text: string) => {
-    console.log(id, text);
+    console.log(id, text, 'was added');
     items.set(id, { text, checked: false })
     socket.broadcast.emit('addRemoteItem', id, text);
   });
