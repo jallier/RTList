@@ -3,6 +3,7 @@ import * as uuid from 'uuid/v1';
 import { handleSocket } from './App';
 import { io } from './App';
 import List from 'material-ui/List';
+import Button from 'material-ui/Button';
 import { ListBoxItem, ListBoxItemProps } from './listboxitem';
 import { InputForm } from './InputForm';
 
@@ -99,6 +100,10 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.setState({ listItems: newListItems });
   }
 
+  public handleResetButtonClick(e: React.SyntheticEvent<any>) {
+    io.emit('resetList');
+  }
+
   render() {
     return (
       <div>
@@ -113,6 +118,9 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
             }
           </List>
           <InputForm handleSubmit={this.handleInputSubmit} handleChange={this.handleInputChange} />
+          <Button variant="raised" color="secondary" onClick={this.handleResetButtonClick}>
+            Reset List
+          </Button>
         </div>
       </div>
     );

@@ -10,10 +10,14 @@ export interface ListBoxItemProps {
   clickHandler: any; // This is a function passed by the parent
 }
 
-const style = {
+const ListItemStyle = {
   height: '50px',
   borderBottom: '1px solid grey',
   borderTop: '1px solid grey',
+};
+
+const ListItemTextStyle = {
+  textDecoration: 'line-through',
 };
 
 export class ListBoxItem extends React.Component<ListBoxItemProps> {
@@ -24,12 +28,13 @@ export class ListBoxItem extends React.Component<ListBoxItemProps> {
 
   render() {
     return (
-      <ListItem onClick={this.handleSubClick} style={style}>
+      <ListItem onClick={this.handleSubClick} style={ListItemStyle}>
         <Checkbox checked={this.props.checked} />
-        <ListItemText primary={this.props.text} />
+        <ListItemText primary={this.props.text} style={this.props.checked ? ListItemTextStyle : {}} />
       </ListItem>
     );
   }
+  // pass this through a method so that the arguments can be passed back up to the parent
   private handleSubClick() {
     this.props.clickHandler(this.props);
   }
