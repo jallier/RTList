@@ -2,6 +2,7 @@ import { ListItem, ListItemText } from 'material-ui/List';
 import Checkbox from 'material-ui/Checkbox';
 import * as React from 'react';
 import { io } from './App';
+import { DeleteButton } from './deleteButton';
 
 export interface ListBoxItemProps {
   id: string;
@@ -28,9 +29,10 @@ export class ListBoxItem extends React.Component<ListBoxItemProps> {
 
   render() {
     return (
-      <ListItem onClick={this.handleSubClick} style={ListItemStyle}>
+      <ListItem onClick={this.handleSubClick} style={ListItemStyle} className="list-box-item">
         <Checkbox checked={this.props.checked} />
         <ListItemText primary={this.props.text} style={this.props.checked ? ListItemTextStyle : {}} />
+        <DeleteButton />
       </ListItem>
     );
   }
