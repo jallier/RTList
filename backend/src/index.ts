@@ -21,11 +21,19 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
   console.log('A user connected');
+  // When a user connects, send the current state of the list to them
+  // But first conver the map to array for the react components
+  let itemsArr = [];
+  for (let i of items.entries()) {
+    itemsArr.push({ id: i[0], text: i[1].text, checked: i[1].checked });
+  }
+  socket.emit('receivedInitialState', itemsArr);
+
   socket.on('click', (id: string, text: string, checked: boolean) => {
     console.log(id, { text, checked }, 'was clicked');
     items.set(id, { text, checked });
     console.log(items);
-    socket.broadcast.emit('click', id, text, checked); 
+    socket.broadcast.emit('click', id, text, checked);
   });
   socket.on('addItem', (id: string, text: string) => {
     console.log(id, text, 'was added');
@@ -35,7 +43,7 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('User disconnected');
     console.log(items);
-    items.clear();
+    // items.clear();
   })
 })
 

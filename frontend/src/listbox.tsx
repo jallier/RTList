@@ -27,17 +27,24 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     super(props);
     this.handleRemoteListItemAdded();
     // tslint:disable-next-line:max-line-length
-    this.state = { text: this.props.text, listItems: [{ id: uuid(), checked: false, text: 'This test comes from the state. Added in the constructor' }], input: '' };
+    this.state = { text: this.props.text, listItems: [], input: '' };
 
     this.handleInputSubmit = this.handleInputSubmit.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleRemoteListItemAdded = this.handleRemoteListItemAdded.bind(this);
     this.handleListItemClick = this.handleListItemClick.bind(this);
     this.handleRemoteListItemStateChange = this.handleRemoteListItemStateChange.bind(this);
+    this.handleReceiveInitialState = this.handleReceiveInitialState.bind(this);
 
+    io.on('receivedInitialState', this.handleReceiveInitialState);
     io.on('click', this.handleRemoteListItemStateChange);
   }
 
+  public handleReceiveInitialState(listItems: ListItemsState[]) {
+    this.setState({ listItems });
+  }
+
+  // TODO: make me match the other function below
   public handleRemoteListItemAdded() {
     io.on('addRemoteItem', (id: string, value: string) => {
       console.log(id, value, 'was added');

@@ -7,7 +7,7 @@ import * as styled from './styled-components';
 
 // tslint:disable-next-line:max-line-length
 // This is the ip that the clients connect to. Make it a public one if you want to connect to something outside of this pc
-export const io = socket.connect('http://localhost:3001');
+export const io = socket.connect('http://192.168.1.65:3001');
 export function handleSocket() {
   // tslint:disable-next-line:no-any
   io.on('msg', (msg: any) => {
