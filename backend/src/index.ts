@@ -13,7 +13,7 @@ let io = socketio(serv);
 
 function createArrayFromMap(arr: IterableIterator<[string, IListItem]>) {
   let itemsArr = [];
-  for (let i of arr){
+  for (let i of arr) {
     itemsArr.push({ id: i[0], text: i[1].text, checked: i[1].checked });
   }
   return itemsArr;
@@ -33,7 +33,7 @@ io.on('connection', (socket) => {
   // But first convert the map to array for the react components
   socket.emit('receivedInitialState', createArrayFromMap(items.entries()));
 
-  // Now register the socket listeners for the varioues events
+  // Now register the socket listeners for the various events
   socket.on('click', (id: string, text: string, checked: boolean) => {
     console.log(id, { text, checked }, 'was clicked');
     items.set(id, { text, checked });
@@ -45,6 +45,12 @@ io.on('connection', (socket) => {
     console.log(id, text, 'was added');
     items.set(id, { text, checked: false })
     socket.broadcast.emit('addRemoteItem', id, text);
+  });
+
+  socket.on('deleteItem', (id: string) => {
+    items.delete(id);
+    console.log(id, 'was removed');
+    socket.broadcast.emit('deleteRemoteItem', id);
   });
 
   socket.on('resetList', () => {
