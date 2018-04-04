@@ -1,11 +1,36 @@
 import * as express from 'express';
 import * as http from 'http';
 import * as socketio from 'socket.io';
+import * as sequelize from 'sequelize';
 
 interface IListItem {
   text: string;
   checked: boolean;
 }
+
+const sql = new sequelize('rtlist', 'root', 'password'{
+  host: '127.0.0.1',
+  dialect: 'mysql',
+  operatorsAliases: false
+});
+
+sql.authenticate().then(() => {
+  console.log('database succesfully authenticated');
+}).catch(err => {
+  console.log('db error :(');
+});
+
+const Item = sql.define('item', {
+  id: { type: sequelize.INTEGER, primaryKey: true },
+  date: { type: sequelize.DATE, allowNull: true },
+  uuid: { type: sequelize.STRING },
+  text: { type: sequelize.STRING },
+  checked: { type: sequelize.BOOLEAN }
+}, { timestamps: false });
+
+Item.find({ raw: true }).then(item => {
+  console.log(item); 
+});
 
 let app = express();
 let serv = http.createServer(app);
@@ -43,7 +68,8 @@ io.on('connection', (socket) => {
 
   socket.on('addItem', (id: string, text: string) => {
     console.log(id, text, 'was added');
-    items.set(id, { text, checked: false })
+    items.set(id, { text, checked: false });
+    Item.create({ uuid: id, text, checked: false });
     socket.broadcast.emit('addRemoteItem', id, text);
   });
 
@@ -57,6 +83,12 @@ io.on('connection', (socket) => {
     console.log('resetting list');
     items.clear();
     io.emit('receivedInitialState', createArrayFromMap(items.entries()));
+  });
+
+  socket.on('showLogs', () => {
+    Item.findAll({ raw: true }).then(items => {
+      console.log(items);
+    });
   });
 
   socket.on('disconnect', () => {

@@ -132,6 +132,10 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     io.emit('resetList');
   }
 
+  public handleShowLogsClick(e: React.SyntheticEvent<any>) {
+    io.emit('showLogs');
+  }
+
   render() {
     return (
       <div>
@@ -148,6 +152,9 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
           <InputForm handleSubmit={this.handleInputSubmit} handleChange={this.handleInputChange} />
           <Button variant="raised" color="secondary" onClick={this.handleResetButtonClick}>
             Reset List
+          </Button>
+          <Button variant="raised" color="secondary" onClick={this.handleShowLogsClick}>
+            Show logs in console
           </Button>
         </div>
       </div>
