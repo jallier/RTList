@@ -28,18 +28,27 @@ const Item = sql.define('item', {
   checked: { type: sequelize.BOOLEAN }
 }, { timestamps: false });
 
+const User = sql.define('user', {
+  id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+  username: { type: sequelize.STRING },
+  password: { type: sequelize.STRING }
+});
+
+Item.sync();
+User.sync();
+
+// Add some defaults to the db if they aren't there already
+Item.upsert({id: 1, uuid:'1def48f0-3adb-11e8-b13e-35e3613a0a20', text:'Sample item', checked:false});
+User.upsert({id: 1, username: 'admin', password:'admin'});
+
 let app = express();
 let serv = http.createServer(app);
 let io = socketio(serv);
 
-// TODO: 
-// Convert to proper class
-// Add proper async handling for db calls
-
 async function sendCurrentDb(socket: SocketIO.Socket, broadcast?: boolean) {
   // try catch goes here
   let results = await Item.findAll({ raw: true });
-  console.log('Current items', results);
+  // console.log('Current items', results);
   if (!broadcast) {
     socket.emit('receivedInitialState', results);
   } else {
