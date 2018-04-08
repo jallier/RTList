@@ -78,21 +78,19 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('deleteRemoteItem', id);
   });
 
-  socket.on('resetList', () => {
+  socket.on('resetList', async () => {
     console.log('resetting list');
-    Item.truncate();
+    await Item.truncate();
     sendCurrentDb(socket, true);
   });
 
-  socket.on('showLogs', () => {
-    Item.findAll({ raw: true }).then(items => {
-      console.log(items);
-    });
+  socket.on('showLogs', async () => {
+    let items = await Item.findAll({ raw: true });
+    console.log(items);
   });
 
   socket.on('disconnect', () => {
     console.log('User disconnected');
-    console.log(items);
   })
 })
 
