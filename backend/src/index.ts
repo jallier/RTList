@@ -28,24 +28,24 @@ const Item = sql.define('item', {
   checked: { type: sequelize.BOOLEAN }
 }, { timestamps: false });
 
-Item.find({ raw: true }).then(item => {
-  console.log(item); 
-});
-
 let app = express();
 let serv = http.createServer(app);
 let io = socketio(serv);
 
-function createArrayFromMap(arr: IterableIterator<[string, IListItem]>) {
-  let itemsArr = [];
-  for (let i of arr) {
-    itemsArr.push({ id: i[0], text: i[1].text, checked: i[1].checked });
-  }
-  return itemsArr;
-}
+// TODO: 
+// Convert to proper class
+// Add proper async handling for db calls
 
-// let items: { [id: string]: IItems } = { };
-let items: Map<string, IListItem> = new Map();
+async function sendCurrentDb(socket: SocketIO.Socket, broadcast?: boolean) {
+  // try catch goes here
+  let results = await Item.findAll({ raw: true });
+  console.log('Current items', results);
+  if (!broadcast) {
+    socket.emit('receivedInitialState', results);
+  } else {
+    io.emit('receivedInitialState', results);
+  }
+}
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
@@ -55,34 +55,33 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('A user connected');
   // When a user connects, send the current state of the list to them
-  // But first convert the map to array for the react components
-  socket.emit('receivedInitialState', createArrayFromMap(items.entries()));
+  sendCurrentDb(socket);
 
   // Now register the socket listeners for the various events
-  socket.on('click', (id: string, text: string, checked: boolean) => {
-    console.log(id, { text, checked }, 'was clicked');
-    items.set(id, { text, checked });
-    console.log(items);
-    socket.broadcast.emit('click', id, text, checked);
+  socket.on('checkedItem', (uuid: string, text: string, checked: boolean) => {
+    console.log(uuid, { text, checked }, 'was clicked');
+    Item.update({ text, checked }, { where: { uuid } }).catch((err) => {
+      console.log(err);
+    });
+    socket.broadcast.emit('checkedItem', uuid, text, checked);
   });
 
-  socket.on('addItem', (id: string, text: string) => {
-    console.log(id, text, 'was added');
-    items.set(id, { text, checked: false });
-    Item.create({ uuid: id, text, checked: false });
-    socket.broadcast.emit('addRemoteItem', id, text);
+  socket.on('addItem', (uuid: string, text: string) => {
+    console.log(uuid, text, 'was added');
+    Item.create({ uuid, text, checked: false });
+    socket.broadcast.emit('addRemoteItem', uuid, text);
   });
 
   socket.on('deleteItem', (id: string) => {
-    items.delete(id);
+    Item.destroy({ where: { uuid: id } });
     console.log(id, 'was removed');
     socket.broadcast.emit('deleteRemoteItem', id);
   });
 
   socket.on('resetList', () => {
     console.log('resetting list');
-    items.clear();
-    io.emit('receivedInitialState', createArrayFromMap(items.entries()));
+    Item.truncate();
+    sendCurrentDb(socket, true);
   });
 
   socket.on('showLogs', () => {
@@ -94,7 +93,6 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('User disconnected');
     console.log(items);
-    // items.clear();
   })
 })
 

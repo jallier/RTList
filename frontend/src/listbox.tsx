@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as uuid from 'uuid/v1';
+import * as uuidGenerator from 'uuid/v1';
 import { handleSocket } from './App';
 import { io } from './App';
 import List from 'material-ui/List';
@@ -12,7 +12,7 @@ interface ListBoxProps {
 }
 
 interface ListItemsState {
-  id: string;
+  uuid: string;
   checked: boolean;
   text: string;
 }
@@ -40,20 +40,21 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.handleRemoteDeleteItem = this.handleRemoteDeleteItem.bind(this);
 
     io.on('receivedInitialState', this.handleReceiveInitialState);
-    io.on('click', this.handleRemoteListItemStateChange);
+    io.on('checkedItem', this.handleRemoteListItemStateChange);
     io.on('deleteRemoteItem', this.handleRemoteDeleteItem);
   }
 
   public handleReceiveInitialState(listItems: ListItemsState[]) {
+    console.log('List items', listItems);
     this.setState({ listItems });
   }
 
   // TODO: make me match the other function below
   public handleRemoteListItemAdded() {
-    io.on('addRemoteItem', (id: string, value: string) => {
-      console.log(id, value, 'was added');
+    io.on('addRemoteItem', (uuid: string, value: string) => {
+      console.log(uuid, value, 'was added');
       this.setState(prevState => ({
-        listItems: this.state.listItems.concat([{ id, checked: false, text: value }]),
+        listItems: this.state.listItems.concat([{ uuid, checked: false, text: value }]),
       }));
     });
   }
@@ -61,10 +62,10 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   public handleInputSubmit(e: React.SyntheticEvent<any>) {
     e.preventDefault();
     console.log(this.state.input);
-    let id = uuid();
-    io.emit('addItem', id, this.state.input);
+    let uuid = uuidGenerator();
+    io.emit('addItem', uuid, this.state.input);
     this.setState(prevState => ({
-      listItems: this.state.listItems.concat([{ id, checked: false, text: this.state.input }]),
+      listItems: this.state.listItems.concat([{ uuid, checked: false, text: this.state.input }]),
     }));
     e.currentTarget.reset();
   }
@@ -79,32 +80,32 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.setState({ listItems: newListItems }, () => {
       // Only emit once the state has been updated. 
       // This could be moved to the start of the function, left here as a reminder
-      io.emit('click', e.id, e.text, !e.checked);
+      io.emit('checkedItem', e.id, e.text, !e.checked);
     });
   }
 
   // TODO: Rework these two functions to just modify/remove the items in place instead of making a new array
-  public getUpdatedListStateItem(id: string, text: string, checked: boolean) {
-    console.log(id, text, checked);
+  public getUpdatedListStateItem(uuid: string, text: string, checked: boolean) {
+    console.log(uuid, text, checked);
     let newListItems: ListItemsState[] = [];
     for (let item of this.state.listItems) {
       let newText = item.text;
       let newChecked = item.checked;
-      if (item.id === id) {
+      if (item.uuid === uuid) {
         newText = text;
         newChecked = checked;
-        console.log(id, 'was matched');
+        console.log(uuid, 'was matched');
       }
-      newListItems.push({ id: item.id, text: newText, checked: newChecked });
+      newListItems.push({ uuid: item.uuid, text: newText, checked: newChecked });
     }
     return newListItems;
   }
 
-  public getRemovedListStateItem(id: string) {
+  public getRemovedListStateItem(uuid: string) {
     let newListItems: ListItemsState[] = [];
     for (let item of this.state.listItems) {
-      if (id !== item.id) {
-        newListItems.push({ id: item.id, text: item.text, checked: item.checked });
+      if (uuid !== item.uuid) {
+        newListItems.push({ uuid: item.uuid, text: item.text, checked: item.checked });
       }
     }
     return newListItems;
@@ -145,7 +146,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
             {
               this.state.listItems.map((item) => (
                 // tslint:disable-next-line:max-line-length
-                <ListBoxItem text={item.text} id={item.id} key={item.id} checked={item.checked} checkedClickHandler={this.handleListItemClick} deletedClickHandler={this.handleDeleteItemClick} />
+                <ListBoxItem text={item.text} id={item.uuid} key={item.uuid} checked={item.checked} checkedClickHandler={this.handleListItemClick} deletedClickHandler={this.handleDeleteItemClick} />
               ))
             }
           </List>
