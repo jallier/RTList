@@ -8,7 +8,7 @@ export interface ListBoxItemProps {
   id: string;
   text: string;
   checked: boolean;
-  checkedClickHandler: Function; 
+  checkedClickHandler: Function;
   deletedClickHandler: Function;
 }
 
@@ -32,7 +32,7 @@ export class ListBoxItem extends React.Component<ListBoxItemProps> {
   render() {
     return (
       <ListItem style={ListItemStyle} className="list-box-item">
-        <Checkbox checked={this.props.checked} onClick={this.handleSubClick} />
+        <Checkbox checked={!!+this.props.checked} onClick={this.handleSubClick} />
         <ListItemText primary={this.props.text} style={this.props.checked ? ListItemTextStyle : {}} />
         <DeleteButton onClick={this.handleDeleteClick} />
       </ListItem>
@@ -44,8 +44,6 @@ export class ListBoxItem extends React.Component<ListBoxItemProps> {
   }
 
   private handleDeleteClick(e: React.SyntheticEvent<any>) {
-    // console.log(this.props.id, 'delete button was clicked');
-    // io.emit('deleteItem', this.props.id);
     this.props.deletedClickHandler(this.props.id);
   }
 }
