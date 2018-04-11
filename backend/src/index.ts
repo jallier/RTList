@@ -38,8 +38,8 @@ Item.sync();
 User.sync();
 
 // Add some defaults to the db if they aren't there already
-Item.upsert({id: 1, uuid:'1def48f0-3adb-11e8-b13e-35e3613a0a20', text:'Sample item', checked:false});
-User.upsert({id: 1, username: 'admin', password:'admin'});
+Item.upsert({ id: 1, uuid: '1def48f0-3adb-11e8-b13e-35e3613a0a20', text: 'Sample item', checked: false });
+User.upsert({ id: 1, username: 'admin', password: 'admin' });
 
 let app = express();
 let serv = http.createServer(app);
@@ -64,9 +64,13 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('A user connected');
   // When a user connects, send the current state of the list to them
-  sendCurrentDb(socket);
+  // sendCurrentDb(socket);
 
   // Now register the socket listeners for the various events
+  socket.on('getAll', () => {
+    sendCurrentDb(socket);
+  });
+
   socket.on('checkedItem', (uuid: string, text: string, checked: boolean) => {
     console.log(uuid, { text, checked }, 'was clicked');
     Item.update({ text, checked }, { where: { uuid } }).catch((err) => {

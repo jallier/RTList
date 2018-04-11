@@ -26,7 +26,6 @@ interface ListBoxState {
 export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   constructor(props: ListBoxProps) {
     super(props);
-    this.handleRemoteListItemAdded();
     // tslint:disable-next-line:max-line-length
     this.state = { text: this.props.text, listItems: [], input: '' };
 
@@ -39,9 +38,27 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.handleDeleteItemClick = this.handleDeleteItemClick.bind(this);
     this.handleRemoteDeleteItem = this.handleRemoteDeleteItem.bind(this);
 
+    io.emit('getAll');
+  }
+
+  /**
+   * Register the socket listeners here
+   */
+  public componentDidMount() {
     io.on('receivedInitialState', this.handleReceiveInitialState);
+    io.on('addRemoteItem', this.handleRemoteListItemAdded);
     io.on('checkedItem', this.handleRemoteListItemStateChange);
     io.on('deleteRemoteItem', this.handleRemoteDeleteItem);
+  }
+
+  /**
+   * Unregister the socket listeners here to prevent things being updated twice on remount
+   */
+  public componentWillUnmount() {
+    io.off('receivedInitialState', this.handleReceiveInitialState);
+    io.off('addRemoteItem', this.handleRemoteListItemAdded);
+    io.off('checkedItem', this.handleRemoteListItemStateChange);
+    io.off('deleteRemoteItem', this.handleRemoteDeleteItem);
   }
 
   public handleReceiveInitialState(listItems: ListItemsState[]) {
@@ -50,13 +67,11 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 
   // TODO: make me match the other function below
-  public handleRemoteListItemAdded() {
-    io.on('addRemoteItem', (uuid: string, value: string) => {
-      console.log(uuid, value, 'was added');
-      this.setState(prevState => ({
-        listItems: this.state.listItems.concat([{ uuid, checked: false, text: value }]),
-      }));
-    });
+  public handleRemoteListItemAdded(uuid: string, value: string) {
+    console.log(uuid, value, 'was added');
+    this.setState(prevState => ({
+      listItems: this.state.listItems.concat([{ uuid, checked: false, text: value }]),
+    }));
   }
 
   public handleInputSubmit(e: React.SyntheticEvent<any>) {
