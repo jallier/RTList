@@ -8,7 +8,7 @@ interface IListItem {
   checked: boolean;
 }
 
-const sql = new sequelize('rtlist', 'root', 'password'{
+const sql = new sequelize('rtlist', 'root', 'rootpassword', {
   host: '127.0.0.1',
   dialect: 'mysql',
   operatorsAliases: false
@@ -21,9 +21,9 @@ sql.authenticate().then(() => {
 });
 
 const Item = sql.define('item', {
-  id: { type: sequelize.INTEGER, primaryKey: true },
+  id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
   date: { type: sequelize.DATE, allowNull: true },
-  uuid: { type: sequelize.STRING },
+  uuid: { type: sequelize.STRING, unique: true },
   text: { type: sequelize.STRING },
   checked: { type: sequelize.BOOLEAN }
 }, { timestamps: false });
@@ -38,8 +38,8 @@ Item.sync();
 User.sync();
 
 // Add some defaults to the db if they aren't there already
-Item.upsert({ id: 1, uuid: '1def48f0-3adb-11e8-b13e-35e3613a0a20', text: 'Sample item', checked: false });
-User.upsert({ id: 1, username: 'admin', password: 'admin' });
+Item.upsert({ uuid: '1def48f0-3adb-11e8-b13e-35e3613a0a20', text: 'Sample item', checked: false });
+User.upsert({ username: 'admin', password: 'admin' });
 
 let app = express();
 let serv = http.createServer(app);
@@ -81,7 +81,7 @@ io.on('connection', (socket) => {
 
   socket.on('addItem', (uuid: string, text: string) => {
     console.log(uuid, text, 'was added');
-    Item.create({ uuid, text, checked: false });
+    Item.create({ uuid: uuid, text, checked: false });
     socket.broadcast.emit('addRemoteItem', uuid, text);
   });
 
