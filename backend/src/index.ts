@@ -2,11 +2,21 @@ import * as express from 'express';
 import * as http from 'http';
 import * as socketio from 'socket.io';
 import * as sequelize from 'sequelize';
+import * as jwt from 'jsonwebtoken';
+import * as bodyparser from 'body-parser';
 
 interface IListItem {
   text: string;
   checked: boolean;
 }
+
+interface UserAttributes {
+  id?: string;
+  username: string;
+  password: string;
+}
+
+type UserInstance = sequelize.Instance<UserAttributes> & UserAttributes;
 
 const sql = new sequelize('rtlist', 'root', 'rootpassword', {
   host: '127.0.0.1',
@@ -30,7 +40,7 @@ const Item = sql.define('item', {
 
 const User = sql.define('user', {
   id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-  username: { type: sequelize.STRING },
+  username: { type: sequelize.STRING, unique: true },
   password: { type: sequelize.STRING }
 });
 
@@ -41,9 +51,19 @@ User.sync();
 Item.upsert({ uuid: '1def48f0-3adb-11e8-b13e-35e3613a0a20', text: 'Sample item', checked: false });
 User.upsert({ username: 'admin', password: 'admin' });
 
+const jwtSecret = 'secret!' // This should go into a conf file later on
+
 let app = express();
 let serv = http.createServer(app);
 let io = socketio(serv);
+
+app.use(bodyparser.json()); // support json encoded bodies
+app.use(bodyparser.urlencoded({ extended: true })); // support encoded bodies
+app.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
 
 async function sendCurrentDb(socket: SocketIO.Socket, broadcast?: boolean) {
   // try catch goes here
@@ -59,6 +79,32 @@ async function sendCurrentDb(socket: SocketIO.Socket, broadcast?: boolean) {
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
   console.log('sending response to client');
+});
+
+app.post('/login', async (req, res) => {
+  console.log(req.body.username, req.body.password);
+  let username: string = req.body.username;
+  let password: string = req.body.password;
+  if (!username) {
+    res.send(JSON.stringify('No username'));
+    return;
+  }
+
+  let user = await User.find({ where: { username }, raw: true }) as UserInstance;
+  if (!user) {
+    res.send(JSON.stringify('Cannot find user'));
+    return;
+  }
+  if (user.password !== password) {
+    res.send(JSON.stringify('password does not match'));
+    return;
+  }
+  const token = jwt.sign({ username }, jwtSecret, { expiresIn: '1m' });
+  console.log(token);
+  console.log(jwt.verify(token, jwtSecret));
+
+  res.setHeader('Content-Type', 'application/json');
+  res.send(JSON.stringify({ 'token': token }));
 });
 
 io.on('connection', (socket) => {
