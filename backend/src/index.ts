@@ -86,17 +86,17 @@ app.post('/login', async (req, res) => {
   let username: string = req.body.username;
   let password: string = req.body.password;
   if (!username) {
-    res.send(JSON.stringify('No username'));
+    res.send(JSON.stringify({ error: 'No username', token: null }));
     return;
   }
 
   let user = await User.find({ where: { username }, raw: true }) as UserInstance;
   if (!user) {
-    res.send(JSON.stringify('Cannot find user'));
+    res.send(JSON.stringify({ error: 'Cannot find user', token: null }));
     return;
   }
   if (user.password !== password) {
-    res.send(JSON.stringify('password does not match'));
+    res.send(JSON.stringify({ error: 'password does not match', token: null }));
     return;
   }
   const token = jwt.sign({ username }, jwtSecret, { expiresIn: '1m' });
