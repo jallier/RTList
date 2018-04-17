@@ -51,7 +51,17 @@ export class Test extends React.Component {
   }
 }
 
-export class Protected extends React.Component<{}, { username: string, password: string }> {
+export class TestPrivate extends React.Component {
+  render() {
+    return (
+      <div>
+        This is a private page
+      </div>
+    );
+  }
+}
+
+export class Login extends React.Component<{}, { username: string, password: string }> {
   private isLoggedIn: boolean;
 
   public constructor(props: {}) {
@@ -100,11 +110,11 @@ export class Protected extends React.Component<{}, { username: string, password:
         sessionStorage.setItem('token', token.token);
         this.isLoggedIn = true;
         console.log(token.token);
+        res(token.token);
       } else {
         console.log('error logging in');
         rej(token.error);
       }
-      res(token.token);
     });
   }
 

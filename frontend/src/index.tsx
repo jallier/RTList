@@ -1,9 +1,15 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
-import { App, Test, Protected } from './App';
+import { App, Test, Login, TestPrivate } from './App';
+import { ProtectedRoute, ProtectedRouteProps } from './PrivateRoute';
 import registerServiceWorker from './registerServiceWorker';
 import './index.css';
+
+let test: ProtectedRouteProps = {
+  isAuthenticated: false,
+  authenticationPath: '/login'
+};
 
 ReactDOM.render(
   <Router>
@@ -14,7 +20,8 @@ ReactDOM.render(
 
       <Route exact={true} path="/" component={App} />
       <Route path="/test" component={Test} />
-      <Route path="/protected" component={Protected} />
+      <Route path="/login" component={Login} />
+      <ProtectedRoute {...test} exact={true} path="/protected" component={TestPrivate} />
     </div>
   </Router>,
   document.getElementById('root') as HTMLElement
