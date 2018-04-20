@@ -1,10 +1,12 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
-import { App, Test, Login, TestPrivate } from './App';
-import { ProtectedRoute, ProtectedRouteProps } from './PrivateRoute';
+import { App, TestPrivate } from './components/App';
+import { ProtectedRoute, ProtectedRouteProps } from './components/PrivateRoute';
 import registerServiceWorker from './registerServiceWorker';
-import './index.css';
+import './css/index.css';
+import { Test } from './components/Test';
+import { Login } from './components/Login';
 
 let test: ProtectedRouteProps = {
   isAuthenticated: false,
