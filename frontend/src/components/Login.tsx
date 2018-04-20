@@ -2,13 +2,21 @@ import * as React from 'react';
 import Button from 'material-ui/Button/Button';
 import { Redirect } from 'react-router';
 
-export class Login extends React.Component<{}, { username: string, password: string }> {
-  private isLoggedIn: boolean;
+interface LoginProps {
+  redirectToOnSuccess: string;
+  callback: (username: string, token: string) => void;
+}
 
-  public constructor(props: {}) {
-    super({});
-    this.isLoggedIn = false;
-    this.state = { username: '', password: '' };
+interface LoginState {
+  username: string;
+  password: string;
+  isAuth: boolean;
+}
+
+export class Login extends React.Component<LoginProps, LoginState> {
+  public constructor(props: LoginProps) {
+    super(props);
+    this.state = { username: '', password: '', isAuth: false };
 
     this.handleUsernameChange = this.handleUsernameChange.bind(this);
     this.handlePasswordChange = this.handlePasswordChange.bind(this);
@@ -25,8 +33,9 @@ export class Login extends React.Component<{}, { username: string, password: str
   public async handleInputSubmit(e: React.SyntheticEvent<any>) {
     e.preventDefault();
     e.currentTarget.reset();
-    await this.login(this.state.username, this.state.password);
-    this.forceUpdate();
+    let token = await this.login(this.state.username, this.state.password);
+    this.props.callback(this.state.username, token);
+    this.setState({ isAuth: true });
   }
   public async postData(url: string, data: any) {
     return fetch(url, {
@@ -49,7 +58,6 @@ export class Login extends React.Component<{}, { username: string, password: str
       let token: { token: string | undefined, error?: string | undefined } = await responseToken.json();
       if (token.token) {
         sessionStorage.setItem('token', token.token);
-        this.isLoggedIn = true;
         console.log(token.token);
         res(token.token);
       } else {
@@ -60,22 +68,22 @@ export class Login extends React.Component<{}, { username: string, password: str
   }
 
   public render() {
-    console.log(this.isLoggedIn);
     return (
-      !this.isLoggedIn ?
-        (
-          <div>
-            You are not authenticated. Please login to see this page
+      !this.state.isAuth ? (
+        <div>
+          You are not authenticated. Please login to see this page
             <form onSubmit={this.handleInputSubmit}>
-              <input name="username" onChange={this.handleUsernameChange} placeholder="Username" />
-              <input name="password" onChange={this.handlePasswordChange} placeholder="Password" />
-              <Button type="submit" variant="raised">
-                Submit
+            <input name="username" onChange={this.handleUsernameChange} placeholder="Username" />
+            <input name="password" onChange={this.handlePasswordChange} placeholder="Password" />
+            <Button type="submit" variant="raised">
+              Submit
             </Button>
-            </form>
+          </form>
+        </div>
+      ) : (
+          <div>
+            <Redirect to={this.props.redirectToOnSuccess} />
           </div>
-        ) : (
-          <Redirect to={{ pathname: '/' }} />
         )
     );
   }

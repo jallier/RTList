@@ -12,6 +12,7 @@ import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 import { ProtectedRoute, ProtectedRouteProps } from './PrivateRoute';
 import { Test } from './Test';
 import { Login } from './Login';
+import * as jwt from 'jsonwebtoken';
 // const logo = require('./logo.svg');
 
 // This is the ip that the clients connect to. Make it a public one if you want to connect to something outside of this pc
@@ -63,8 +64,9 @@ export class App extends React.Component<any, AppState> {
   }
 
   public handleLogin(username: string, token: string) {
-    console.log('received the token in the app component', username, token);
-    this.setState({ auth: { username, token, expiresAt: 'nothing just yet' } });
+    let decodedToken = jwt.decode(token);
+    let exp = 'exp'; // Define this as a variable to stop TS complaining
+    this.setState({ auth: { username, token, expiresAt: decodedToken ? decodedToken[exp] : undefined } });
   }
 
   public render(): JSX.Element {
