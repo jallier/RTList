@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as uuidGenerator from 'uuid/v1';
-import { handleSocket } from './App';
 import { io } from './App';
 import List from 'material-ui/List';
 import Button from 'material-ui/Button';
