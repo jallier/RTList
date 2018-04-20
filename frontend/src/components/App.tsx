@@ -77,7 +77,7 @@ export class App extends React.Component<any, AppState> {
 
         <Route exact={true} path="/" component={Home} />
         <Route path="/login" render={(props) => <Login {...props} redirectToOnSuccess={'/list'} callback={this.handleLogin} />} />
-        <ProtectedRoute isAuthenticated={this.state.auth ? true : false} redirectToPath={'/login'} exact={true} path="/list" component={TestPrivate} />
+        <ProtectedRoute isAuthenticated={this.state.auth ? true : false} redirectToPath={'/login'} exact={true} path="/list" component={List} />
       </div>
     );
   }
