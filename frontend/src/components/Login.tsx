@@ -33,9 +33,14 @@ export class Login extends React.Component<LoginProps, LoginState> {
   public async handleInputSubmit(e: React.SyntheticEvent<any>) {
     e.preventDefault();
     e.currentTarget.reset();
-    let token = await this.login(this.state.username, this.state.password);
-    this.props.callback(this.state.username, token);
-    this.setState({ isAuth: true });
+    try {
+      let token = await this.login(this.state.username, this.state.password);
+      this.props.callback(this.state.username, token);
+      this.setState({ isAuth: true });
+    } catch (e) {
+      console.error('Error loggin in: ', e);
+      this.setState({ isAuth: false });
+    }
   }
   public async postData(url: string, data: any) {
     return fetch(url, {
@@ -57,11 +62,9 @@ export class Login extends React.Component<LoginProps, LoginState> {
       const responseToken = await this.postData('http://localhost:3001/login', { username, password });
       let token: { token: string | undefined, error?: string | undefined } = await responseToken.json();
       if (token.token) {
-        sessionStorage.setItem('token', token.token);
         console.log(token.token);
         res(token.token);
       } else {
-        console.log('error logging in');
         rej(token.error);
       }
     });

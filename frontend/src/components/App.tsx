@@ -59,14 +59,22 @@ export class App extends React.Component<any, AppState> {
   constructor(props: any) {
     super(props);
     this.state = {};
+    const token = sessionStorage.getItem('token');
+    if (token) {
+      const decodedToken = jwt.decode(token);
+      if (decodedToken && Math.floor(Date.now() / 1000) < decodedToken['exp']) {
+        this.state = { auth: { username: decodedToken['username'], expiresAt: decodedToken['exp'], token } };
+        console.log('Time: ', Math.floor(Date.now() / 1000), 'Token exp: ', decodedToken['exp'], 'Current time less than saved', Math.floor(Date.now() / 1000) < decodedToken['exp']);
+      }
+    }
 
     this.handleLogin = this.handleLogin.bind(this);
   }
 
   public handleLogin(username: string, token: string) {
+    sessionStorage.setItem('token', token);
     let decodedToken = jwt.decode(token);
-    let exp = 'exp'; // Define this as a variable to stop TS complaining
-    this.setState({ auth: { username, token, expiresAt: decodedToken ? decodedToken[exp] : undefined } });
+    this.setState({ auth: { username, token, expiresAt: decodedToken ? decodedToken['exp'] : undefined } });
   }
 
   public render(): JSX.Element {
