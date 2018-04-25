@@ -62,6 +62,8 @@ export class App extends React.Component<any, AppState> {
       const decodedToken = jwt.decode(token);
       if (decodedToken && Math.floor(Date.now() / 1000) < decodedToken['exp']) {
         this.io = socket.connect('http://localhost:3001', { secure: true, query: 'auth_token=' + token });
+        this.io.emit('connected', token);
+        this.io.on('disconnectClient', () => { this.setState({ auth: undefined }); });
         this.state = { auth: { username: decodedToken['username'], expiresAt: decodedToken['exp'], token } };
       }
     }
@@ -74,6 +76,8 @@ export class App extends React.Component<any, AppState> {
     let decodedToken = jwt.decode(token);
     // This is the ip that the clients connect to. Make it a public one if you want to connect to something outside of this pc
     this.io = socket.connect('http://localhost:3001', { secure: true, query: 'auth_token=' + token });
+    this.io.emit('connected', token);
+    this.io.on('disconnectClient', () => { this.setState({ auth: undefined }); });
     this.setState({ auth: { username, token, expiresAt: decodedToken ? decodedToken['exp'] : undefined } });
   }
 

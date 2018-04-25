@@ -69,17 +69,6 @@ app.use(function (req, res, next) {
   next();
 });
 
-async function sendCurrentDb(socket: SocketIO.Socket, broadcast?: boolean) {
-  // try catch goes here
-  let results = await Item.findAll({ raw: true });
-  // console.log('Current items', results);
-  if (!broadcast) {
-    socket.emit('receivedInitialState', results);
-  } else {
-    io.emit('receivedInitialState', results);
-  }
-}
-
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
   console.log('sending response to client');
@@ -103,7 +92,7 @@ app.post('/login', async (req, res) => {
     res.send(JSON.stringify({ error: 'password does not match', token: null }));
     return;
   }
-  const token = jwt.sign({ username }, jwtSecret, { expiresIn: '1m' });
+  const token = jwt.sign({ username }, jwtSecret, { expiresIn: '10s' });
   console.log(token);
   console.log(jwt.verify(token, jwtSecret));
 
@@ -111,12 +100,38 @@ app.post('/login', async (req, res) => {
   res.send(JSON.stringify({ 'token': token }));
 });
 
+async function sendCurrentDb(socket: SocketIO.Socket, broadcast?: boolean) {
+  // try catch goes here
+  let results = await Item.findAll({ raw: true });
+  if (!broadcast) {
+    socket.emit('receivedInitialState', results);
+  } else {
+    io.emit('receivedInitialState', results);
+  }
+}
+
+function registerSocketExpiry(socket: SocketIO.Socket, token: string) {
+  let timeout;
+  let decodedToken = jwt.verify(token, jwtSecret) as { username: string; exp: number; token: string }; // cast this bitch
+  if (decodedToken) {
+    timeout = setTimeout(() => {
+      console.log('disconnecting the socket');
+      socket.emit('disconnectClient', 'token expired');
+      socket.disconnect();
+    }, decodedToken.exp * 1000 - Date.now());
+  }
+}
+
 io.on('connection', (socket) => {
-  console.log('A user connected with auth', socket.request.user);
   // When a user connects, send the current state of the list to them
   // sendCurrentDb(socket);
 
   // Now register the socket listeners for the various events
+  socket.on('connected', (token: string) => {
+    console.log('user connected');
+    registerSocketExpiry(socket, token);
+  });
+
   socket.on('getAll', () => {
     sendCurrentDb(socket);
   });
