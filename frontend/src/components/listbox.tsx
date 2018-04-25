@@ -1,13 +1,14 @@
 import * as React from 'react';
 import * as uuidGenerator from 'uuid/v1';
-import { io } from './App';
 import List from 'material-ui/List';
 import Button from 'material-ui/Button';
 import { ListBoxItem, ListBoxItemProps } from './listboxitem';
 import { InputForm } from './InputForm';
+import { Socket } from 'socket.io-client';
 
 interface ListBoxProps {
   text: string;
+  io: SocketIOClient.Socket;
 }
 
 interface ListItemsState {
@@ -23,10 +24,12 @@ interface ListBoxState {
 }
 
 export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
+  private io: SocketIOClient.Socket;
   constructor(props: ListBoxProps) {
     super(props);
     // tslint:disable-next-line:max-line-length
     this.state = { text: this.props.text, listItems: [], input: '' };
+    this.io = this.props.io;
 
     this.handleInputSubmit = this.handleInputSubmit.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
@@ -37,27 +40,27 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.handleDeleteItemClick = this.handleDeleteItemClick.bind(this);
     this.handleRemoteDeleteItem = this.handleRemoteDeleteItem.bind(this);
 
-    io.emit('getAll');
+    this.io.emit('getAll');
   }
 
   /**
    * Register the socket listeners here
    */
   public componentDidMount() {
-    io.on('receivedInitialState', this.handleReceiveInitialState);
-    io.on('addRemoteItem', this.handleRemoteListItemAdded);
-    io.on('checkedItem', this.handleRemoteListItemStateChange);
-    io.on('deleteRemoteItem', this.handleRemoteDeleteItem);
+    this.io.on('receivedInitialState', this.handleReceiveInitialState);
+    this.io.on('addRemoteItem', this.handleRemoteListItemAdded);
+    this.io.on('checkedItem', this.handleRemoteListItemStateChange);
+    this.io.on('deleteRemoteItem', this.handleRemoteDeleteItem);
   }
 
   /**
    * Unregister the socket listeners here to prevent things being updated twice on remount
    */
   public componentWillUnmount() {
-    io.off('receivedInitialState', this.handleReceiveInitialState);
-    io.off('addRemoteItem', this.handleRemoteListItemAdded);
-    io.off('checkedItem', this.handleRemoteListItemStateChange);
-    io.off('deleteRemoteItem', this.handleRemoteDeleteItem);
+    this.io.off('receivedInitialState', this.handleReceiveInitialState);
+    this.io.off('addRemoteItem', this.handleRemoteListItemAdded);
+    this.io.off('checkedItem', this.handleRemoteListItemStateChange);
+    this.io.off('deleteRemoteItem', this.handleRemoteDeleteItem);
   }
 
   public handleReceiveInitialState(listItems: ListItemsState[]) {
@@ -77,7 +80,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     e.preventDefault();
     console.log(this.state.input);
     let uuid = uuidGenerator();
-    io.emit('addItem', uuid, this.state.input);
+    this.io.emit('addItem', uuid, this.state.input);
     this.setState(prevState => ({
       listItems: this.state.listItems.concat([{ uuid, checked: false, text: this.state.input }]),
     }));
@@ -94,7 +97,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.setState({ listItems: newListItems }, () => {
       // Only emit once the state has been updated. 
       // This could be moved to the start of the function, left here as a reminder
-      io.emit('checkedItem', e.id, e.text, !e.checked);
+      this.io.emit('checkedItem', e.id, e.text, !e.checked);
     });
   }
 
@@ -138,17 +141,17 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
 
   public handleDeleteItemClick(id: string) {
     console.log(id, 'delete button was clicked');
-    io.emit('deleteItem', id);
+    this.io.emit('deleteItem', id);
     this.handleRemoteDeleteItem(id);
   }
 
   public handleResetButtonClick(e: React.SyntheticEvent<any>) {
     // Remove this or make it hidden later
-    io.emit('resetList');
+    this.io.emit('resetList');
   }
 
   public handleShowLogsClick(e: React.SyntheticEvent<any>) {
-    io.emit('showLogs');
+    this.io.emit('showLogs');
   }
 
   render() {

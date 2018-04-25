@@ -4,6 +4,7 @@ import * as socketio from 'socket.io';
 import * as sequelize from 'sequelize';
 import * as jwt from 'jsonwebtoken';
 import * as bodyparser from 'body-parser';
+import * as jwtAuth from 'socketio-jwt-auth';
 
 interface IListItem {
   text: string;
@@ -56,6 +57,9 @@ const jwtSecret = 'secret!' // This should go into a conf file later on
 let app = express();
 let serv = http.createServer(app);
 let io = socketio(serv);
+io.use(jwtAuth.authenticate({ secret: jwtSecret }, (payload, done) => {
+  return done(null, payload.username, 'passing token back');
+}));
 
 app.use(bodyparser.json()); // support json encoded bodies
 app.use(bodyparser.urlencoded({ extended: true })); // support encoded bodies
@@ -108,7 +112,7 @@ app.post('/login', async (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  console.log('A user connected');
+  console.log('A user connected with auth', socket.request.user);
   // When a user connects, send the current state of the list to them
   // sendCurrentDb(socket);
 

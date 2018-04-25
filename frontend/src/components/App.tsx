@@ -1,7 +1,6 @@
 import * as React from 'react';
 import '../css/App.css';
 import { ListBox } from './listbox';
-import * as socket from 'socket.io-client';
 import * as styled from './styled-components';
 import { Component } from 'react';
 import { Redirect } from 'react-router';
@@ -13,10 +12,8 @@ import { ProtectedRoute, ProtectedRouteProps } from './PrivateRoute';
 import { Test } from './Test';
 import { Login } from './Login';
 import * as jwt from 'jsonwebtoken';
+import * as socket from 'socket.io-client';
 // const logo = require('./logo.svg');
-
-// This is the ip that the clients connect to. Make it a public one if you want to connect to something outside of this pc
-export const io = socket.connect('http://localhost:3001');
 
 const Body = styled.default.div`
   background-color: #EEEEEE
@@ -30,7 +27,7 @@ interface AppState {
   };
 }
 
-export class List extends React.Component {
+export class List extends React.Component<{ io: SocketIOClient.Socket }, any> {
   public render() {
     return (
       <div>
@@ -38,7 +35,7 @@ export class List extends React.Component {
           <h1>List</h1>
         </header>
         <Body>
-          <ListBox text="ayy lmao" />
+          <ListBox text="ayy lmao" io={this.props.io} />
         </Body>
       </div>
     );
@@ -56,6 +53,7 @@ export class TestPrivate extends React.Component {
 }
 
 export class App extends React.Component<any, AppState> {
+  private io: SocketIOClient.Socket;
   constructor(props: any) {
     super(props);
     this.state = {};
@@ -63,8 +61,8 @@ export class App extends React.Component<any, AppState> {
     if (token) {
       const decodedToken = jwt.decode(token);
       if (decodedToken && Math.floor(Date.now() / 1000) < decodedToken['exp']) {
+        this.io = socket.connect('http://localhost:3001', { secure: true, query: 'auth_token=' + token });
         this.state = { auth: { username: decodedToken['username'], expiresAt: decodedToken['exp'], token } };
-        console.log('Time: ', Math.floor(Date.now() / 1000), 'Token exp: ', decodedToken['exp'], 'Current time less than saved', Math.floor(Date.now() / 1000) < decodedToken['exp']);
       }
     }
 
@@ -74,6 +72,8 @@ export class App extends React.Component<any, AppState> {
   public handleLogin(username: string, token: string) {
     sessionStorage.setItem('token', token);
     let decodedToken = jwt.decode(token);
+    // This is the ip that the clients connect to. Make it a public one if you want to connect to something outside of this pc
+    this.io = socket.connect('http://localhost:3001', { secure: true, query: 'auth_token=' + token });
     this.setState({ auth: { username, token, expiresAt: decodedToken ? decodedToken['exp'] : undefined } });
   }
 
@@ -85,7 +85,13 @@ export class App extends React.Component<any, AppState> {
 
         <Route exact={true} path="/" component={Home} />
         <Route path="/login" render={(props) => <Login {...props} redirectToOnSuccess={'/list'} callback={this.handleLogin} />} />
-        <ProtectedRoute isAuthenticated={this.state.auth ? true : false} redirectToPath={'/login'} exact={true} path="/list" component={List} />
+        <ProtectedRoute
+          isAuthenticated={this.state.auth ? true : false}
+          redirectToPath={'/login'}
+          exact={true}
+          path="/list"
+          render={(props) => <List io={this.io} />}
+        />
       </div>
     );
   }

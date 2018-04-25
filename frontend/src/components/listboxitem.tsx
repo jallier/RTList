@@ -1,7 +1,6 @@
 import { ListItem, ListItemText } from 'material-ui/List';
 import Checkbox from 'material-ui/Checkbox';
 import * as React from 'react';
-import { io } from './App';
 import { DeleteButton } from './deleteButton';
 
 export interface ListBoxItemProps {
