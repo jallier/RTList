@@ -1,6 +1,7 @@
 import * as React from 'react';
 import Button from 'material-ui/Button/Button';
 import { Redirect } from 'react-router';
+import { SnackbarError } from './SnackbarError';
 
 interface LoginProps {
   redirectToOnSuccess: string;
@@ -11,12 +12,14 @@ interface LoginState {
   username: string;
   password: string;
   isAuth: boolean;
+  loginFailure: boolean;
+  loginFailureReason: string;
 }
 
 export class Login extends React.Component<LoginProps, LoginState> {
   public constructor(props: LoginProps) {
     super(props);
-    this.state = { username: '', password: '', isAuth: false };
+    this.state = { username: '', password: '', isAuth: false, loginFailure: false, loginFailureReason: '' };
 
     this.handleUsernameChange = this.handleUsernameChange.bind(this);
     this.handlePasswordChange = this.handlePasswordChange.bind(this);
@@ -38,11 +41,11 @@ export class Login extends React.Component<LoginProps, LoginState> {
       this.props.callback(this.state.username, token);
       this.setState({ isAuth: true });
     } catch (e) {
-      console.error('Error loggin in: ', e);
-      this.setState({ isAuth: false });
+      console.error('Error logging in: ', e);
+      this.setState({ isAuth: false, loginFailure: true, loginFailureReason: e });
     }
   }
-  public async postData(url: string, data: any) {
+  private async postData(url: string, data: any) {
     return fetch(url, {
       body: JSON.stringify(data), // must match 'Content-Type' header
       cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
@@ -57,7 +60,7 @@ export class Login extends React.Component<LoginProps, LoginState> {
     });
   }
 
-  public async login(username: string, password: string) {
+  private async login(username: string, password: string) {
     return new Promise<string>(async (res, rej) => {
       const responseToken = await this.postData('http://localhost:3001/login', { username, password });
       let token: { token: string | undefined, error?: string | undefined } = await responseToken.json();
@@ -71,8 +74,8 @@ export class Login extends React.Component<LoginProps, LoginState> {
   }
 
   public render() {
-    return (
-      !this.state.isAuth ? (
+    if (!this.state.isAuth) {
+      return (
         <div>
           You are not authenticated. Please login to see this page
             <form onSubmit={this.handleInputSubmit}>
@@ -82,12 +85,15 @@ export class Login extends React.Component<LoginProps, LoginState> {
               Submit
             </Button>
           </form>
+          <SnackbarError show={this.state.loginFailure} message={'Failed to login: ' + this.state.loginFailureReason} onClose={(event, reason) => { this.setState({ loginFailure: false }); }} />
         </div>
-      ) : (
-          <div>
-            <Redirect to={this.props.redirectToOnSuccess} />
-          </div>
-        )
-    );
+      );
+    } else {
+      return (
+        <div>
+          <Redirect to={this.props.redirectToOnSuccess} />
+        </div>
+      );
+    }
   }
 }
