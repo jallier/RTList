@@ -42,6 +42,7 @@ const Item = sql.define('item', {
 const User = sql.define('user', {
   id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
   username: { type: sequelize.STRING, unique: true },
+  email: { type: sequelize.STRING, unique: true },
   password: { type: sequelize.STRING }
 });
 
@@ -50,9 +51,10 @@ User.sync();
 
 // Add some defaults to the db if they aren't there already
 Item.upsert({ uuid: '1def48f0-3adb-11e8-b13e-35e3613a0a20', text: 'Sample item', checked: false });
-User.upsert({ username: 'admin', password: 'admin' });
+User.upsert({ username: 'admin', email: 'admin@localhost.com', password: 'admin' });
 
-const jwtSecret = 'secret!' // This should go into a conf file later on
+const jwtSecret = 'secret!'; // This should go into a conf file later on
+const jwtExpiresIn = '20s';
 
 let app = express();
 let serv = http.createServer(app);
@@ -103,11 +105,45 @@ app.post('/login', async (req, res) => {
     res.send(JSON.stringify({ error: 'password does not match', token: null }));
     return;
   }
-  const token = jwt.sign({ username }, jwtSecret, { expiresIn: '20s' });
+  const token = jwt.sign({ username }, jwtSecret, { expiresIn: jwtExpiresIn });
   console.log(token);
   console.log(jwt.verify(token, jwtSecret));
 
   res.setHeader('Content-Type', 'application/json');
+  res.send(JSON.stringify({ 'token': token }));
+});
+
+app.post('/register', async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  const username = req.body.username;
+  const email = req.body.email;
+  const password = req.body.password;
+  console.log('User is registering', username, email, password);
+  if (!username) {
+    return res.send(JSON.stringify({ error: 'No username sent' }));
+  }
+  if (!email) {
+    return res.send(JSON.stringify({ error: 'No email sent' }));
+  }
+  if (!password) {
+    return res.send(JSON.stringify({ error: 'No password sent' }));
+  }
+  let user;
+  try {
+    user = await User.create({ username, email, password }) as UserInstance;
+  } catch (e) {
+    const error: string = e.errors[0].message;
+    console.error('Error registering new user: ', error);
+    if (error.includes('username')) {
+      return res.send(JSON.stringify({ error: 'This user already exists, please choose a unique username' }));
+    } else if (error.includes('email')) {
+      return res.send(JSON.stringify({ error: 'This email address has already been used, please choose a unique email address' }));
+    }
+  }
+  const token = jwt.sign({ username }, jwtSecret, { expiresIn: jwtExpiresIn });
+  console.log(token);
+  console.log(jwt.verify(token, jwtSecret));
+
   res.send(JSON.stringify({ 'token': token }));
 });
 

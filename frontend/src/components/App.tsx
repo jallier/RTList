@@ -2,7 +2,6 @@ import * as React from 'react';
 import '../css/App.css';
 import { ListBox } from './listbox';
 import * as styled from './styled-components';
-import { Component } from 'react';
 import { Redirect } from 'react-router';
 import { InputForm } from './InputForm';
 import Button from 'material-ui/Button/Button';
@@ -10,7 +9,8 @@ import { Home } from './Pages/Home';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 import { ProtectedRoute, ProtectedRouteProps } from './PrivateRoute';
 import { Test } from './Test';
-import { Login } from './Login';
+import { Login } from './Pages/Login';
+import { Register } from './Pages/Register';
 import * as jwt from 'jsonwebtoken';
 import * as socket from 'socket.io-client';
 // const logo = require('./logo.svg');
@@ -93,9 +93,11 @@ export class App extends React.Component<any, AppState> {
       <div className="body">
         <li><Link to="/">Home</Link></li>
         <li><Link to="/list">List Page</Link></li>
+        <li><Link to="/register">Register</Link></li>
 
         <Route exact={true} path="/" component={Home} />
         <Route path="/login" render={(props) => <Login {...props} redirectToOnSuccess={'/list'} callback={this.handleLogin} />} />
+        <Route path="/register" render={(props) => <Register {...props} redirectOnSuccess={'/list'} callback={this.handleLogin} />} />
         <ProtectedRoute
           isAuthenticated={this.state.auth ? true : false}
           redirectToPath={'/login'}

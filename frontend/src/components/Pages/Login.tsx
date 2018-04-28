@@ -1,7 +1,8 @@
 import * as React from 'react';
 import Button from 'material-ui/Button/Button';
 import { Redirect } from 'react-router';
-import { SnackbarError } from './SnackbarError';
+import { SnackbarError } from '../SnackbarError';
+import { postData } from '../../lib/fetch';
 
 interface LoginProps {
   redirectToOnSuccess: string;
@@ -45,24 +46,10 @@ export class Login extends React.Component<LoginProps, LoginState> {
       this.setState({ isAuth: false, loginFailure: true, loginFailureReason: e });
     }
   }
-  private async postData(url: string, data: any) {
-    return fetch(url, {
-      body: JSON.stringify(data), // must match 'Content-Type' header
-      cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-      credentials: 'same-origin', // include, same-origin, *omit
-      headers: {
-        'content-type': 'application/json'
-      },
-      method: 'POST', // *GET, POST, PUT, DELETE, etc.
-      mode: 'cors', // no-cors, cors, *same-origin
-      redirect: 'follow', // manual, *follow, error
-      referrer: 'no-referrer', // *client, no-referrer
-    });
-  }
 
   private async login(username: string, password: string) {
     return new Promise<string>(async (res, rej) => {
-      const responseToken = await this.postData('http://localhost:3001/login', { username, password });
+      const responseToken = await postData('http://localhost:3001/login', { username, password });
       let token: { token: string | undefined, error?: string | undefined } = await responseToken.json();
       if (token.token) {
         console.log(token.token);
