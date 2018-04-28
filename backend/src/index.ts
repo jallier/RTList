@@ -60,6 +60,17 @@ let io = socketio(serv);
 io.use(jwtAuth.authenticate({ secret: jwtSecret }, (payload, done) => {
   return done(null, payload.username, 'passing token back');
 }));
+io.use((socket, next) => {
+  // Add a timeout to every connection to force a disconnect on token expiry
+  let token = socket.request._query.auth_token;
+  if (token) {
+    registerSocketExpiry(socket, token);
+    next();
+  } else {
+    console.error('Cannot find token in connection query');
+    next(new Error('Authentication error'));
+  }
+})
 
 app.use(bodyparser.json()); // support json encoded bodies
 app.use(bodyparser.urlencoded({ extended: true })); // support encoded bodies
@@ -92,7 +103,7 @@ app.post('/login', async (req, res) => {
     res.send(JSON.stringify({ error: 'password does not match', token: null }));
     return;
   }
-  const token = jwt.sign({ username }, jwtSecret, { expiresIn: '10s' });
+  const token = jwt.sign({ username }, jwtSecret, { expiresIn: '20s' });
   console.log(token);
   console.log(jwt.verify(token, jwtSecret));
 
@@ -127,11 +138,6 @@ io.on('connection', (socket) => {
   // sendCurrentDb(socket);
 
   // Now register the socket listeners for the various events
-  socket.on('connected', (token: string) => {
-    console.log('user connected');
-    registerSocketExpiry(socket, token);
-  });
-
   socket.on('getAll', () => {
     sendCurrentDb(socket);
   });
