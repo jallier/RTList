@@ -13,6 +13,7 @@ import { Login } from './Pages/Login';
 import { Register } from './Pages/Register';
 import * as jwt from 'jsonwebtoken';
 import * as socket from 'socket.io-client';
+import { Header } from './Header';
 // const logo = require('./logo.svg');
 
 const Body = styled.default.div`
@@ -37,16 +38,6 @@ export class List extends React.Component<{ io: SocketIOClient.Socket }, any> {
         <Body>
           <ListBox text="ayy lmao" io={this.props.io} />
         </Body>
-      </div>
-    );
-  }
-}
-
-export class TestPrivate extends React.Component {
-  render() {
-    return (
-      <div>
-        This is a private page
       </div>
     );
   }
@@ -91,6 +82,9 @@ export class App extends React.Component<any, AppState> {
   public render(): JSX.Element {
     return (
       <div className="body">
+        <Header>
+          Ayy lmao
+        </Header>
         <li><Link to="/">Home</Link></li>
         <li><Link to="/list">List Page</Link></li>
         <li><Link to="/register">Register</Link></li>

@@ -54,7 +54,7 @@ Item.upsert({ uuid: '1def48f0-3adb-11e8-b13e-35e3613a0a20', text: 'Sample item',
 User.upsert({ username: 'admin', email: 'admin@localhost.com', password: 'admin' });
 
 const jwtSecret = 'secret!'; // This should go into a conf file later on
-const jwtExpiresIn = '20s';
+const jwtExpiresIn = '20m';
 
 let app = express();
 let serv = http.createServer(app);
