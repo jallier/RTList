@@ -82,12 +82,7 @@ export class App extends React.Component<any, AppState> {
   public render(): JSX.Element {
     return (
       <div className="body">
-        <Header>
-          Ayy lmao
-        </Header>
-        <li><Link to="/">Home</Link></li>
-        <li><Link to="/list">List Page</Link></li>
-        <li><Link to="/register">Register</Link></li>
+        <Header links={[{ to: '/', text: 'Home' }, { to: '/list', text: 'List Page' }, { to: '/register', text: 'Register' }]} />
 
         <Route exact={true} path="/" component={Home} />
         <Route path="/login" render={(props) => <Login {...props} redirectToOnSuccess={'/list'} callback={this.handleLogin} />} />
