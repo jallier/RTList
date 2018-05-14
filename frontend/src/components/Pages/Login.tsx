@@ -67,7 +67,7 @@ export class Login extends React.Component<LoginProps, LoginState> {
     const PaperStyle = {
       // 'background-color': 'red',
       'width': '80%',
-      'padding': '10px',
+      'padding': '30px',
       'display': 'flex',
       'flex-direction': 'column',
       'justify-content': 'center',
@@ -75,8 +75,10 @@ export class Login extends React.Component<LoginProps, LoginState> {
     };
 
     const Input = styled.default.input`
-      height: 20px;
+      width: 350px;
+      height: 30px;
       margin-bottom: 10px;
+      padding: 5px;
     `;
     if (!this.state.isAuth) {
       return (
@@ -89,7 +91,7 @@ export class Login extends React.Component<LoginProps, LoginState> {
               <Input name="password" onChange={this.handlePasswordChange} placeholder="Password" />
               <br />
               <Button type="submit" variant="raised">
-                Submit
+                Login
             </Button>
             </form>
             <SnackbarError show={this.state.loginFailure} message={'Failed to login: ' + this.state.loginFailureReason} onClose={(event, reason) => { this.setState({ loginFailure: false }); }} />
