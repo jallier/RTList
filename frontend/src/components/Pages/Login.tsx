@@ -6,6 +6,7 @@ import Paper from 'material-ui/Paper';
 import { postData } from '../../lib/fetch';
 import { CenteredLayout } from '../CenteredLayout';
 import * as styled from '../styled-components';
+import { Input, PaperStyle } from '../styles';
 
 interface LoginProps {
   redirectToOnSuccess: string;
@@ -64,22 +65,6 @@ export class Login extends React.Component<LoginProps, LoginState> {
   }
 
   public render() {
-    const PaperStyle = {
-      // 'background-color': 'red',
-      'width': '80%',
-      'padding': '30px',
-      'display': 'flex',
-      'flex-direction': 'column',
-      'justify-content': 'center',
-      'align-items': 'center'
-    };
-
-    const Input = styled.default.input`
-      width: 350px;
-      height: 30px;
-      margin-bottom: 10px;
-      padding: 5px;
-    `;
     if (!this.state.isAuth) {
       return (
         <CenteredLayout height={'300px'}>

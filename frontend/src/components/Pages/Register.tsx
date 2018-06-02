@@ -2,6 +2,10 @@ import * as React from 'react';
 import Button from 'material-ui/Button/Button';
 import { postData } from '../../lib/fetch';
 import { Redirect } from 'react-router';
+import { CenteredLayout } from '../CenteredLayout';
+import * as styled from '../styled-components';
+import Paper from 'material-ui/Paper';
+import { PaperStyle, Input } from '../styles';
 
 interface RegisterProps {
   redirectOnSuccess: string;
@@ -71,14 +75,22 @@ export class Register extends React.Component<RegisterProps, RegisterState> {
       return (<Redirect to={this.props.redirectOnSuccess} />);
     } else {
       return (
-        <form onSubmit={this.handleInputSubmit}>
-          <input name="username" onChange={this.handleUsernameChange} placeholder="Username" />
-          <input name="email" onChange={this.handleEmailChange} placeholder="Email address" />
-          <input name="password" onChange={this.handlePasswordChange} placeholder="Password" />
-          <Button type="submit" variant="raised">
-            Submit
+        <CenteredLayout height={'500px'}>
+          <Paper elevation={4} style={PaperStyle}>
+            <p>Sign up for an account</p>
+            <form onSubmit={this.handleInputSubmit}>
+              <Input name="username" onChange={this.handleUsernameChange} placeholder="Username" />
+              <br />
+              <Input name="email" onChange={this.handleEmailChange} placeholder="Email address" />
+              <br />
+              <Input name="password" onChange={this.handlePasswordChange} placeholder="Password" />
+              <br />
+              <Button type="submit" variant="raised">
+                Submit
           </Button>
-        </form>
+            </form>
+          </Paper>
+        </CenteredLayout>
       );
     }
   }
