@@ -6,11 +6,11 @@ type Children = JSX.Element[]; // | JSX.Element | string;
 
 interface HeaderProps {
   children?: Children;
+  username?: string;
   links?: { to: string, text: string }[];
 }
 
-const Li = styled.default.li`
-  display: inline-block;
+const Li = styled.default.div`
   padding-right: 5px;
 `;
 
@@ -19,8 +19,7 @@ const Nav = styled.default.nav`
   height: 50px;
   background-color: red;
   display: flex;
-  justify-content: center;
-  flex-direction: column;
+  align-items: center;
 `;
 
 export class Header extends React.Component<HeaderProps> {
@@ -30,19 +29,21 @@ export class Header extends React.Component<HeaderProps> {
     let output = [];
     if (this.props.links) {
       let len = this.props.links.length;
-      for (let i = 0; i < len; i++) {
+      let i = 0;
+      for (i = 0; i < len; i++) {
         if (i < len - 1) {
           output.push(<Li key={i}><Link to={this.props.links[i].to}>{this.props.links[i].text}</Link>{'\u00A0'}|</Li>);
         } else {
           output.push(<Li key={i}><Link to={this.props.links[i].to}>{this.props.links[i].text}</Link></Li>);
         }
       }
+      if (this.props.username) {
+        output.push(<Li key={i++} style={{ 'margin-left': 'auto' }}><Link to={'/profile/' + this.props.username}>{this.props.username}</Link></Li>);
+      }
     }
     return (
       <Nav>
-        <ul>
-          {output}
-        </ul>
+        {output}
         {this.props.children}
       </Nav>
     );

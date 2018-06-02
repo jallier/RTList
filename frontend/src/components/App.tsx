@@ -82,7 +82,10 @@ export class App extends React.Component<any, AppState> {
   public render(): JSX.Element {
     return (
       <div className="body">
-        <Header links={[{ to: '/', text: 'Home' }, { to: '/list', text: 'List Page' }, { to: '/register', text: 'Register' }]} />
+        <Header
+          links={[{ to: '/', text: 'Home' }, { to: '/list', text: 'List Page' }, { to: '/register', text: 'Register' }]}
+          username={this.state.auth ? this.state.auth.username : undefined}
+        />
 
         <Route exact={true} path="/" component={Home} />
         <Route path="/login" render={(props) => <Login {...props} redirectToOnSuccess={'/list'} callback={this.handleLogin} />} />
