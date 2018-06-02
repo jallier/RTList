@@ -38,7 +38,7 @@ export class Header extends React.Component<HeaderProps> {
         }
       }
       if (this.props.username) {
-        output.push(<Li key={i++} style={{ 'margin-left': 'auto' }}><Link to={'/profile/' + this.props.username}>{this.props.username}</Link></Li>);
+        output.push(<Li key={i++} style={{ 'marginLeft': 'auto' }}><Link to={'/profile/' + this.props.username}>{this.props.username}</Link></Li>);
       }
     }
     return (
