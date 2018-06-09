@@ -8,10 +8,12 @@ import { Socket } from 'socket.io-client';
 
 interface ListBoxProps {
   text: string;
+  username: string;
   io: SocketIOClient.Socket;
 }
 
 interface ListItemsState {
+  username: string;
   uuid: string;
   checked: boolean;
   text: string;
@@ -69,10 +71,10 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 
   // TODO: make me match the other function below
-  public handleRemoteListItemAdded(uuid: string, value: string) {
-    console.log(uuid, value, 'was added');
+  public handleRemoteListItemAdded(username: string, uuid: string, value: string) {
+    console.log(uuid, value, 'was added by', username);
     this.setState(prevState => ({
-      listItems: this.state.listItems.concat([{ uuid, checked: false, text: value }]),
+      listItems: this.state.listItems.concat([{ username, uuid, checked: false, text: value }]),
     }));
   }
 
@@ -80,9 +82,9 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     e.preventDefault();
     console.log(this.state.input);
     let uuid = uuidGenerator();
-    this.io.emit('addItem', uuid, this.state.input);
+    this.io.emit('addItem', this.props.username, uuid, this.state.input);
     this.setState(prevState => ({
-      listItems: this.state.listItems.concat([{ uuid, checked: false, text: this.state.input }]),
+      listItems: this.state.listItems.concat([{ username: this.props.username, uuid, checked: false, text: this.state.input }]),
     }));
     e.currentTarget.reset();
   }
@@ -113,7 +115,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
         newChecked = checked;
         console.log(uuid, 'was matched');
       }
-      newListItems.push({ uuid: item.uuid, text: newText, checked: newChecked });
+      newListItems.push({ username: this.props.username, uuid: item.uuid, text: newText, checked: newChecked });
     }
     return newListItems;
   }
@@ -122,7 +124,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     let newListItems: ListItemsState[] = [];
     for (let item of this.state.listItems) {
       if (uuid !== item.uuid) {
-        newListItems.push({ uuid: item.uuid, text: item.text, checked: item.checked });
+        newListItems.push({ username: this.props.username, uuid: item.uuid, text: item.text, checked: item.checked });
       }
     }
     return newListItems;
@@ -163,7 +165,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
             {
               this.state.listItems.map((item) => (
                 // tslint:disable-next-line:max-line-length
-                <ListBoxItem text={item.text} id={item.uuid} key={item.uuid} checked={item.checked} checkedClickHandler={this.handleListItemClick} deletedClickHandler={this.handleDeleteItemClick} />
+                <ListBoxItem username={item.username} text={item.text} id={item.uuid} key={item.uuid} checked={item.checked} checkedClickHandler={this.handleListItemClick} deletedClickHandler={this.handleDeleteItemClick} />
               ))
             }
           </List>

@@ -36,7 +36,8 @@ const Item = sql.define('item', {
   date: { type: sequelize.DATE, allowNull: true },
   uuid: { type: sequelize.STRING, unique: true },
   text: { type: sequelize.STRING },
-  checked: { type: sequelize.BOOLEAN }
+  checked: { type: sequelize.BOOLEAN },
+  user_id: { type: sequelize.INTEGER, allowNull: false }
 }, { timestamps: false });
 
 const User = sql.define('user', {
@@ -46,12 +47,17 @@ const User = sql.define('user', {
   password: { type: sequelize.STRING }
 });
 
-Item.sync();
 User.sync();
+Item.sync();
+
+User.hasMany(Item, { foreignKey: 'user_id' });
+
+User.sync();
+Item.sync();
 
 // Add some defaults to the db if they aren't there already
-Item.upsert({ uuid: '1def48f0-3adb-11e8-b13e-35e3613a0a20', text: 'Sample item', checked: false });
 User.upsert({ username: 'admin', email: 'admin@localhost.com', password: 'admin' });
+Item.upsert({ uuid: '1def48f0-3adb-11e8-b13e-35e3613a0a20', text: 'Sample item', checked: false, user_id: 1 });
 
 const jwtSecret = 'secret!'; // This should go into a conf file later on
 const jwtExpiresIn = '20m';
@@ -186,10 +192,12 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('checkedItem', uuid, text, checked);
   });
 
-  socket.on('addItem', (uuid: string, text: string) => {
-    console.log(uuid, text, 'was added');
-    Item.create({ uuid: uuid, text, checked: false });
-    socket.broadcast.emit('addRemoteItem', uuid, text);
+  socket.on('addItem', async (username: string, uuid: string, text: string) => {
+    console.log(uuid, text, 'was added by', username);
+    // Not great to do a lookup for every insert.
+    let user_id = await User.findOne({ where: { username } }) as UserInstance;
+    Item.create({ user_id: user_id.id, uuid, text, checked: false });
+    socket.broadcast.emit('addRemoteItem', username, uuid, text);
   });
 
   socket.on('deleteItem', (id: string) => {

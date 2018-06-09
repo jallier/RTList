@@ -2,9 +2,11 @@ import { ListItem, ListItemText } from 'material-ui/List';
 import Checkbox from 'material-ui/Checkbox';
 import * as React from 'react';
 import { DeleteButton } from './deleteButton';
+import * as styled from '../components/styled-components';
 
 export interface ListBoxItemProps {
   id: string;
+  username: string;
   text: string;
   checked: boolean;
   checkedClickHandler: Function;
@@ -21,6 +23,10 @@ const ListItemTextStyle = {
   textDecoration: 'line-through',
 };
 
+const Span = styled.default.span`
+  color: grey;
+`;
+
 export class ListBoxItem extends React.Component<ListBoxItemProps> {
   constructor(props: ListBoxItemProps) {
     super(props);
@@ -33,6 +39,7 @@ export class ListBoxItem extends React.Component<ListBoxItemProps> {
       <ListItem style={ListItemStyle} className="list-box-item">
         <Checkbox checked={!!+this.props.checked} onClick={this.handleSubClick} />
         <ListItemText primary={this.props.text} style={this.props.checked ? ListItemTextStyle : {}} />
+        <Span>{this.props.username}</Span>
         <DeleteButton onClick={this.handleDeleteClick} />
       </ListItem>
     );

@@ -29,7 +29,7 @@ interface AppState {
   };
 }
 
-export class List extends React.Component<{ io: SocketIOClient.Socket }, any> {
+export class List extends React.Component<{ io: SocketIOClient.Socket, username: string }, any> {
   public render() {
     return (
       <div>
@@ -37,7 +37,7 @@ export class List extends React.Component<{ io: SocketIOClient.Socket }, any> {
           <h1>List</h1>
         </header>
         <Body>
-          <ListBox text="ayy lmao" io={this.props.io} />
+          <ListBox text="ayy lmao" io={this.props.io} username={this.props.username} />
         </Body>
       </div>
     );
@@ -101,7 +101,7 @@ export class App extends React.Component<any, AppState> {
             redirectToPath={'/login'}
             exact={true}
             path="/list"
-            render={(props) => <List io={this.io} />}
+            render={(props) => <List io={this.io} username={this.state.auth ? this.state.auth.username : ''} />}
           />
           <Route component={Error404} />
         </Switch>
