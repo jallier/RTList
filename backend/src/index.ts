@@ -155,7 +155,8 @@ app.post('/register', async (req, res) => {
 
 async function sendCurrentDb(socket: SocketIO.Socket, broadcast?: boolean) {
   // try catch goes here
-  let results = await Item.findAll({ raw: true });
+  // Do a raw query here because sequelize joins are a pain
+  let results = await sql.query('select items.*, users.username from items join users on items.user_id = users.id', { type: sequelize.QueryTypes.SELECT });
   if (!broadcast) {
     socket.emit('receivedInitialState', results);
   } else {
