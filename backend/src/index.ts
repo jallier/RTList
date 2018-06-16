@@ -36,9 +36,10 @@ const Item = sql.define('item', {
   date: { type: sequelize.DATE, allowNull: true },
   uuid: { type: sequelize.STRING, unique: true },
   text: { type: sequelize.STRING },
+  added_by: { type: sequelize.INTEGER, allowNull: false },
   checked: { type: sequelize.BOOLEAN },
-  user_id: { type: sequelize.INTEGER, allowNull: false }
-}, { timestamps: false });
+  checked_by: { type: sequelize.INTEGER, allowNull: true }
+});
 
 const User = sql.define('user', {
   id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
@@ -50,14 +51,17 @@ const User = sql.define('user', {
 User.sync();
 Item.sync();
 
-User.hasMany(Item, { foreignKey: 'user_id' });
+User.hasMany(Item, { foreignKey: 'added_by' });
+User.hasMany(Item, { foreignKey: 'checked_by' });
 
 User.sync();
 Item.sync();
 
 // Add some defaults to the db if they aren't there already
 User.upsert({ username: 'admin', email: 'admin@localhost.com', password: 'admin' });
-Item.upsert({ uuid: '1def48f0-3adb-11e8-b13e-35e3613a0a20', text: 'Sample item', checked: false, user_id: 1 });
+User.upsert({ username: 'test1', email: 'test@localhost.com', password: 'test1' });
+Item.upsert({ uuid: '1def48f0-3adb-11e8-b13e-35e3613a0a20', text: 'Sample item', added_by: 1, checked: false, checked_by: null });
+Item.upsert({ uuid: '1def48f0-3adb-11e8-b13e-35e3613a0a31', text: 'Sample item', added_by: 2, checked: true, checked_by: 1 });
 
 const jwtSecret = 'secret!'; // This should go into a conf file later on
 const jwtExpiresIn = '20m';
@@ -156,7 +160,7 @@ app.post('/register', async (req, res) => {
 async function sendCurrentDb(socket: SocketIO.Socket, broadcast?: boolean) {
   // try catch goes here
   // Do a raw query here because sequelize joins are a pain
-  let results = await sql.query('select items.*, users.username from items join users on items.user_id = users.id', { type: sequelize.QueryTypes.SELECT });
+  let results = await sql.query('select items.*, a.username as addedBy, c.username as checkedBy from items left join users a on items.added_by = a.id left join users c on items.checked_by = c.id', { type: sequelize.QueryTypes.SELECT });
   if (!broadcast) {
     socket.emit('receivedInitialState', results);
   } else {

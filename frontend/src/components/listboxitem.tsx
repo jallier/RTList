@@ -6,9 +6,10 @@ import * as styled from '../components/styled-components';
 
 export interface ListBoxItemProps {
   id: string;
-  username: string;
+  addedBy: string;
   text: string;
   checked: boolean;
+  checkedBy?: string;
   checkedClickHandler: Function;
   deletedClickHandler: Function;
 }
@@ -39,7 +40,9 @@ export class ListBoxItem extends React.Component<ListBoxItemProps> {
       <ListItem style={ListItemStyle} className="list-box-item">
         <Checkbox checked={!!+this.props.checked} onClick={this.handleSubClick} />
         <ListItemText primary={this.props.text} style={this.props.checked ? ListItemTextStyle : {}} />
-        <Span>{this.props.username}</Span>
+        <Span>{this.props.addedBy}</Span>
+        :
+        <Span>{this.props.checkedBy}</Span>
         <DeleteButton onClick={this.handleDeleteClick} />
       </ListItem>
     );
