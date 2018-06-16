@@ -15,6 +15,7 @@ import * as jwt from 'jsonwebtoken';
 import * as socket from 'socket.io-client';
 import { Header } from './Header';
 import { Error404 } from './Pages/404';
+import { Profile } from './Pages/Profile';
 // const logo = require('./logo.svg');
 
 const Body = styled.default.div`
@@ -102,6 +103,12 @@ export class App extends React.Component<any, AppState> {
             exact={true}
             path="/list"
             render={(props) => <List io={this.io} username={this.state.auth ? this.state.auth.username : ''} />}
+          />
+          <ProtectedRoute
+            isAuthenticated={this.state.auth ? true : false}
+            redirectToPath={'/login'}
+            path="/profile"
+            render={(props) => <Profile />}
           />
           <Route component={Error404} />
         </Switch>
