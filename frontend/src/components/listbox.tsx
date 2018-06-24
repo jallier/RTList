@@ -97,10 +97,11 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   // This function should invert the current checked state of the item
   public handleListItemClick(e: ListBoxItemProps) {
     let newListItems = this.getUpdatedListStateItem(e.id, e.text, !e.checked);
+    console.log(newListItems, 'List of new items');
     this.setState({ listItems: newListItems }, () => {
       // Only emit once the state has been updated. 
       // This could be moved to the start of the function, left here as a reminder
-      this.io.emit('checkedItem', e.id, e.text, !e.checked);
+      this.io.emit('checkedItem', e.id, e.text, !e.checked, e.checkedBy);
     });
   }
 
@@ -111,12 +112,14 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     for (let item of this.state.listItems) {
       let newText = item.text;
       let newChecked = item.checked;
+      let newCheckedBy = item.checkedBy;
       if (item.uuid === uuid) {
         newText = text;
         newChecked = checked;
+        newCheckedBy = this.props.username;
         console.log(uuid, 'was matched');
       }
-      newListItems.push({ addedBy: this.props.username, uuid: item.uuid, text: newText, checked: newChecked });
+      newListItems.push({ addedBy: item.addedBy || this.props.username, uuid: item.uuid, text: newText, checked: newChecked, checkedBy: newCheckedBy });
     }
     return newListItems;
   }

@@ -189,19 +189,19 @@ io.on('connection', (socket) => {
     sendCurrentDb(socket);
   });
 
-  socket.on('checkedItem', (uuid: string, text: string, checked: boolean) => {
-    console.log(uuid, { text, checked }, 'was clicked');
-    Item.update({ text, checked }, { where: { uuid } }).catch((err) => {
+  socket.on('checkedItem', (uuid: string, text: string, checked: boolean, checked_by: string) => {
+    console.log(uuid, { text, checked, checked_by }, 'was clicked');
+    Item.update({ text, checked, checked_by }, { where: { uuid } }).catch((err) => {
       console.log(err);
     });
-    socket.broadcast.emit('checkedItem', uuid, text, checked);
+    socket.broadcast.emit('checkedItem', uuid, text, checked, checked_by);
   });
 
   socket.on('addItem', async (username: string, uuid: string, text: string) => {
     console.log(uuid, text, 'was added by', username);
     // Not great to do a lookup for every insert.
     let user_id = await User.findOne({ where: { username } }) as UserInstance;
-    Item.create({ user_id: user_id.id, uuid, text, checked: false });
+    Item.create({ added_by: user_id.id, uuid, text, checked: false });
     socket.broadcast.emit('addRemoteItem', username, uuid, text);
   });
 
