@@ -25,12 +25,19 @@ const Body = styled.default.div`
 interface AppState {
   auth?: {
     username: string;
+    userId: number;
     token: string;
     expiresAt: string;
   };
 }
 
-export class List extends React.Component<{ io: SocketIOClient.Socket, username: string }, any> {
+interface ListProps {
+  io: SocketIOClient.Socket;
+  username: string;
+  userId: number;
+}
+
+export class List extends React.Component<ListProps, any> {
   public render() {
     return (
       <div>
@@ -38,7 +45,7 @@ export class List extends React.Component<{ io: SocketIOClient.Socket, username:
           <h1>List</h1>
         </header>
         <Body>
-          <ListBox text="ayy lmao" io={this.props.io} username={this.props.username} />
+          <ListBox text="ayy lmao" io={this.props.io} username={this.props.username} userId={this.props.userId} />
         </Body>
       </div>
     );
@@ -55,7 +62,7 @@ export class App extends React.Component<any, AppState> {
       const decodedToken = jwt.decode(token);
       if (decodedToken && Math.floor(Date.now() / 1000) < decodedToken['exp']) {
         this.handleConnectToSocket(token);
-        this.state = { auth: { username: decodedToken['username'], expiresAt: decodedToken['exp'], token } };
+        this.state = { auth: { username: decodedToken['username'], userId: decodedToken['id'], expiresAt: decodedToken['exp'], token } };
       }
     }
 
@@ -75,6 +82,7 @@ export class App extends React.Component<any, AppState> {
       auth: {
         token,
         username: decodedToken ? decodedToken['username'] : undefined,
+        userId: decodedToken ? decodedToken['id'] : undefined,
         expiresAt: decodedToken ? decodedToken['exp'] : undefined
       }
     });
@@ -102,7 +110,7 @@ export class App extends React.Component<any, AppState> {
             redirectToPath={'/login'}
             exact={true}
             path="/list"
-            render={(props) => <List io={this.io} username={this.state.auth ? this.state.auth.username : ''} />}
+            render={(props) => <List io={this.io} username={this.state.auth ? this.state.auth.username : ''} userId={this.state.auth ? this.state.auth.userId : 0} />}
           />
           <ProtectedRoute
             isAuthenticated={this.state.auth ? true : false}

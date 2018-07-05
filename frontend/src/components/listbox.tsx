@@ -9,6 +9,7 @@ import { Socket } from 'socket.io-client';
 interface ListBoxProps {
   text: string;
   username: string;
+  userId: number;
   io: SocketIOClient.Socket;
 }
 
@@ -17,6 +18,7 @@ interface ListItemsState {
   uuid: string;
   checked: boolean;
   checkedBy?: string;
+  checkedById?: number;
   text: string;
 }
 
@@ -101,7 +103,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.setState({ listItems: newListItems }, () => {
       // Only emit once the state has been updated. 
       // This could be moved to the start of the function, left here as a reminder
-      this.io.emit('checkedItem', e.id, e.text, !e.checked, e.checkedBy);
+      this.io.emit('checkedItem', e.id, e.text, !e.checked, e.checkedBy, this.props.userId);
     });
   }
 

@@ -115,7 +115,7 @@ app.post('/login', async (req, res) => {
     res.send(JSON.stringify({ error: 'password does not match', token: null }));
     return;
   }
-  const token = jwt.sign({ username }, jwtSecret, { expiresIn: jwtExpiresIn });
+  const token = jwt.sign({ username, id: user.id }, jwtSecret, { expiresIn: jwtExpiresIn });
   console.log(token);
   console.log(jwt.verify(token, jwtSecret));
 
@@ -189,12 +189,13 @@ io.on('connection', (socket) => {
     sendCurrentDb(socket);
   });
 
-  socket.on('checkedItem', (uuid: string, text: string, checked: boolean, checked_by: string) => {
-    console.log(uuid, { text, checked, checked_by }, 'was clicked');
-    Item.update({ text, checked, checked_by }, { where: { uuid } }).catch((err) => {
+  socket.on('checkedItem', async(uuid: string, text: string, checked: boolean, checkedBy: string, checkedById: number) => {
+    console.log(uuid, { text, checked, checkedBy }, 'was clicked');
+    // get the id of the user that checked the item
+    Item.update({ text, checked, checked_by: checkedById }, { where: { uuid } }).catch((err) => {
       console.log(err);
     });
-    socket.broadcast.emit('checkedItem', uuid, text, checked, checked_by);
+    socket.broadcast.emit('checkedItem', uuid, text, checked, checkedBy);
   });
 
   socket.on('addItem', async (username: string, uuid: string, text: string) => {
