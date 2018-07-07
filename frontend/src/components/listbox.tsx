@@ -45,6 +45,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.handleDeleteItemClick = this.handleDeleteItemClick.bind(this);
     this.handleRemoteDeleteItem = this.handleRemoteDeleteItem.bind(this);
 
+    console.log('emitting getAll');
     this.io.emit('getAll');
   }
 
