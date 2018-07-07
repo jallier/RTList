@@ -98,7 +98,9 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
 
   // This function should invert the current checked state of the item
   public handleListItemClick(e: ListBoxItemProps) {
-    let newListItems = this.getUpdatedListStateItem(e.id, e.text, !e.checked);
+    // tslint:disable-next-line:no-debugger
+    debugger;
+    let newListItems = this.getUpdatedListStateItem(e.id, e.text, !e.checked, e.checkedBy || '');
     console.log(newListItems, 'List of new items');
     this.setState({ listItems: newListItems }, () => {
       // Only emit once the state has been updated. 
@@ -108,7 +110,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 
   // TODO: Rework these two functions to just modify/remove the items in place instead of making a new array
-  public getUpdatedListStateItem(uuid: string, text: string, checked: boolean) {
+  public getUpdatedListStateItem(uuid: string, text: string, checked: boolean, checkedBy: string) {
     console.log(uuid, text, checked);
     let newListItems: ListItemsState[] = [];
     for (let item of this.state.listItems) {
@@ -118,7 +120,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
       if (item.uuid === uuid) {
         newText = text;
         newChecked = checked;
-        newCheckedBy = this.props.username;
+        newCheckedBy = checkedBy || this.props.username;
         console.log(uuid, 'was matched');
       }
       newListItems.push({ addedBy: item.addedBy || this.props.username, uuid: item.uuid, text: newText, checked: newChecked, checkedBy: newCheckedBy });
@@ -136,8 +138,8 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     return newListItems;
   }
 
-  public handleRemoteListItemStateChange(id: string, text: string, checked: boolean) {
-    let newListItems = this.getUpdatedListStateItem(id, text, checked);
+  public handleRemoteListItemStateChange(id: string, text: string, checked: boolean, checkedBy: string) {
+    let newListItems = this.getUpdatedListStateItem(id, text, checked, checkedBy);
     this.setState({ listItems: newListItems });
   }
 
