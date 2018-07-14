@@ -5,6 +5,7 @@ import * as sequelize from 'sequelize';
 import * as jwt from 'jsonwebtoken';
 import * as bodyparser from 'body-parser';
 import * as jwtAuth from 'socketio-jwt-auth';
+import { logger } from './logger';
 
 interface IListItem {
   text: string;
@@ -34,7 +35,8 @@ class Server {
     this.sql = new sequelize('rtlist', 'root', 'rootpassword', {
       host: '127.0.0.1',
       dialect: 'mysql',
-      operatorsAliases: false
+      operatorsAliases: false,
+      logging: false
     });
   }
 
@@ -49,9 +51,9 @@ class Server {
   private async initializeDB() {
     try {
       await this.sql.authenticate()
-      console.log('database succesfully authenticated');
+      logger.info('database succesfully authenticated');
     } catch (e) {
-      console.log('db error :(');
+      logger.error('db error :(');
     }
     this.Item = this.sql.define('item', {
       id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
@@ -121,10 +123,10 @@ class WebServer {
   }
 
   public listen() {
-    this.server.listen(3001, '0.0.0.0', ()=>{
-      console.log('listening from the callback');
+    this.server.listen(3001, '0.0.0.0', () => {
+      logger.info('listening from the callback');
     });
-    console.log('Listening on port 3001');
+    logger.info('Listening on port 3001')
   }
 
   private configureMiddleware(app: express.Express) {
@@ -140,11 +142,11 @@ class WebServer {
   private configureRoutes(app: express.Express) {
     app.get('/', (req, res) => {
       res.sendFile(__dirname + '/index.html');
-      console.log('sending response to client');
+      logger.debug('sending response to client');
     });
 
     app.post('/login', async (req, res) => {
-      console.log(req.body.username, req.body.password);
+      logger.debug(req.body.username, req.body.password);
       let username: string = req.body.username;
       let password: string = req.body.password;
       if (!username) {
@@ -162,8 +164,8 @@ class WebServer {
         return;
       }
       const token = jwt.sign({ username, id: user.id }, this.jwtSecret, { expiresIn: this.jwtExpiresIn });
-      console.log(token);
-      console.log(jwt.verify(token, this.jwtSecret));
+      logger.debug(token);
+      logger.debug('JWT: ', jwt.verify(token, this.jwtSecret));
 
       res.setHeader('Content-Type', 'application/json');
       res.send(JSON.stringify({ 'token': token }));
@@ -174,7 +176,7 @@ class WebServer {
       const username = req.body.username;
       const email = req.body.email;
       const password = req.body.password;
-      console.log('User is registering', username, email, password);
+      logger.info('User is registering', username, email, password);
       if (!username) {
         return res.send(JSON.stringify({ error: 'No username sent' }));
       }
@@ -197,8 +199,8 @@ class WebServer {
         }
       }
       const token = jwt.sign({ username }, this.jwtSecret, { expiresIn: this.jwtExpiresIn });
-      console.log(token);
-      console.log(jwt.verify(token, this.jwtSecret));
+      logger.debug(token);
+      logger.debug('JWT', jwt.verify(token, this.jwtSecret));
 
       res.send(JSON.stringify({ 'token': token }));
     });
@@ -257,7 +259,7 @@ class WebsocketsServer {
     let decodedToken = jwt.verify(token, this.jwtSecret) as { username: string; exp: number; token: string }; // cast this bitch
     if (decodedToken) {
       timeout = setTimeout(() => {
-        console.log('disconnecting the socket');
+        logger.info('disconnecting the socket');
         socket.emit('disconnectClient', 'token expired');
         socket.disconnect();
       }, decodedToken.exp * 1000 - Date.now());
@@ -285,16 +287,18 @@ class WebsocketsServer {
       });
 
       socket.on('checkedItem', async (uuid: string, text: string, checked: boolean, checkedBy: string, checkedById: number) => {
-        console.log(uuid, { text, checked, checkedBy }, 'was clicked');
+        logger.debug(uuid, { text, checked, checkedBy }, 'was clicked');
         // get the id of the user that checked the item
-        Item.update({ text, checked, checked_by: checkedById }, { where: { uuid } }).catch((err) => {
-          console.log(err);
-        });
+        try {
+          await Item.update({ text, checked, checked_by: checkedById }, { where: { uuid } });
+        } catch (e) {
+          logger.error(e);
+        }
         socket.broadcast.emit('checkedItem', uuid, text, checked, checkedBy);
       });
 
       socket.on('addItem', async (username: string, uuid: string, text: string) => {
-        console.log(uuid, text, 'was added by', username);
+        logger.debug(uuid, text, 'was added by', username);
         // Not great to do a lookup for every insert.
         let user_id = await User.findOne({ where: { username } }) as UserInstance;
         Item.create({ added_by: user_id.id, uuid, text, checked: false });
@@ -303,23 +307,23 @@ class WebsocketsServer {
 
       socket.on('deleteItem', (id: string) => {
         Item.destroy({ where: { uuid: id } });
-        console.log(id, 'was removed');
+        logger.debug(id, 'was removed');
         socket.broadcast.emit('deleteRemoteItem', id);
       });
 
       socket.on('resetList', async () => {
-        console.log('resetting list');
+        logger.debug('resetting list');
         await Item.truncate();
         this.sendCurrentDb(socket, io, sql, true);
       });
 
       socket.on('showLogs', async () => {
         let items = await Item.findAll({ raw: true });
-        console.log(items);
+        logger.debug('Items: ', items);
       });
 
       socket.on('disconnect', () => {
-        console.log('User disconnected');
+        logger.info('User disconnected');
       })
     })
   }
