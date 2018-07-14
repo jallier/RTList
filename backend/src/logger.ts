@@ -13,6 +13,7 @@ export const logger = new winston.Logger({
     new winston.transports.Console({
       colorize: true,
       level,
+      prettyPrint: true,
       timestamp: () => `[${moment().format('ddd MMM DD HH:mm:ss')}]`,
     }),
   ],
