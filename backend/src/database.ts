@@ -99,7 +99,7 @@ export class Database {
     updates.push({
       version: 2,
       reason: 'Adding columns for bulk delete',
-      update: function (sql: sequelize.Sequelize) {
+      update: (sql: sequelize.Sequelize) => {
         sql.query('ALTER TABLE `items` ADD COLUMN archived BOOLEAN DEFAULT false NOT NULL', { type: sequelize.QueryTypes.RAW });
       }
     });
