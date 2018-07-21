@@ -20,6 +20,7 @@ interface ListItemsState {
   checkedBy?: string;
   checkedById?: number;
   text: string;
+  archived: boolean;
 }
 
 interface ListBoxState {
@@ -46,6 +47,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.handleRemoteDeleteItem = this.handleRemoteDeleteItem.bind(this);
     this.handleShowLogsClick = this.handleShowLogsClick.bind(this);
     this.handleResetButtonClick = this.handleResetButtonClick.bind(this);
+    this.handleCompletedButtonClick = this.handleCompletedButtonClick.bind(this);
 
     console.log('emitting getAll');
     this.io.emit('getAll');
@@ -72,15 +74,15 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 
   public handleReceiveInitialState(listItems: ListItemsState[]) {
-    console.log('List items', listItems);
+    console.log('Received all list items from server: ', listItems);
     this.setState({ listItems });
   }
 
   // TODO: make me match the other function below
-  public handleRemoteListItemAdded(username: string, uuid: string, value: string) {
+  public handleRemoteListItemAdded(username: string, uuid: string, value: string, archived: boolean) {
     console.log(uuid, value, 'was added by', username);
     this.setState(prevState => ({
-      listItems: this.state.listItems.concat([{ addedBy: username, uuid, checked: false, text: value }]),
+      listItems: this.state.listItems.concat([{ addedBy: username, uuid, checked: false, text: value, archived }]),
     }));
   }
 
@@ -90,7 +92,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     let uuid = uuidGenerator();
     this.io.emit('addItem', this.props.username, uuid, this.state.input);
     this.setState(prevState => ({
-      listItems: this.state.listItems.concat([{ addedBy: this.props.username, uuid, checked: false, text: this.state.input }]),
+      listItems: this.state.listItems.concat([{ addedBy: this.props.username, uuid, checked: false, text: this.state.input, archived: false }]),
     }));
     e.currentTarget.reset();
   }
@@ -101,7 +103,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
 
   // This function should invert the current checked state of the item
   public handleListItemClick(e: ListBoxItemProps) {
-    let newListItems = this.getUpdatedListStateItem(e.id, e.text, !e.checked, this.props.username);
+    let newListItems = this.getUpdatedListStateItem(e.id, e.text, !e.checked, this.props.username, false);
     this.setState({ listItems: newListItems }, () => {
       // Only emit once the state has been updated. 
       // This could be moved to the start of the function, left here as a reminder
@@ -110,7 +112,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 
   // TODO: Rework these two functions to just modify/remove the items in place instead of making a new array
-  public getUpdatedListStateItem(uuid: string, text: string, checked: boolean, checkedBy: string) {
+  public getUpdatedListStateItem(uuid: string, text: string, checked: boolean, checkedBy: string, archived: boolean) {
     console.log(uuid, text, checked);
     let newListItems: ListItemsState[] = [];
     for (let item of this.state.listItems) {
@@ -123,7 +125,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
         newCheckedBy = checkedBy || this.props.username;
         console.log(uuid, 'was matched');
       }
-      newListItems.push({ addedBy: item.addedBy || this.props.username, uuid: item.uuid, text: newText, checked: newChecked, checkedBy: newCheckedBy });
+      newListItems.push({ addedBy: item.addedBy || this.props.username, uuid: item.uuid, text: newText, checked: newChecked, checkedBy: newCheckedBy, archived });
     }
     return newListItems;
   }
@@ -132,14 +134,14 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     let newListItems: ListItemsState[] = [];
     for (let item of this.state.listItems) {
       if (uuid !== item.uuid) {
-        newListItems.push({ addedBy: this.props.username, uuid: item.uuid, text: item.text, checked: item.checked });
+        newListItems.push({ addedBy: this.props.username, uuid: item.uuid, text: item.text, checked: item.checked, archived: item.archived });
       }
     }
     return newListItems;
   }
 
-  public handleRemoteListItemStateChange(id: string, text: string, checked: boolean, checkedBy: string) {
-    let newListItems = this.getUpdatedListStateItem(id, text, checked, checkedBy);
+  public handleRemoteListItemStateChange(id: string, text: string, checked: boolean, checkedBy: string, archived: boolean) {
+    let newListItems = this.getUpdatedListStateItem(id, text, checked, checkedBy, archived);
     this.setState({ listItems: newListItems });
   }
 
@@ -164,6 +166,11 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.io.emit('showLogs');
   }
 
+  public handleCompletedButtonClick(e: React.SyntheticEvent<any>) {
+    // Should probably have a confirmation popup here
+    this.io.emit('completedList');
+  }
+
   render() {
     return (
       <div>
@@ -180,6 +187,9 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
           <InputForm handleSubmit={this.handleInputSubmit} handleChange={this.handleInputChange} />
           <Button variant="raised" color="secondary" onClick={this.handleResetButtonClick}>
             Reset List
+          </Button>
+          <Button variant="raised" color="secondary" style={{ margin: '5px' }} onClick={this.handleCompletedButtonClick}>
+            Completed List
           </Button>
           <Button variant="raised" color="secondary" onClick={this.handleShowLogsClick}>
             Show logs in console

@@ -238,6 +238,7 @@ class WebsocketsServer {
     } else {
       io.emit('receivedInitialState', results);
     }
+    logger.info('Sent all items to ' + (!broadcast ? 'single client' : 'all clients'));
   }
 
   private registerSocketRoutes(io: SocketIO.Server, sql: sequelize.Sequelize, User: sequelize.Model<any, any>, Item: sequelize.Model<any, any>) {
@@ -284,6 +285,12 @@ class WebsocketsServer {
       socket.on('showLogs', async () => {
         let items = await Item.findAll({ raw: true });
         logger.debug('Items: ', items);
+      });
+
+      socket.on('completedList', async () => {
+        let completedItems = await Item.update({ archived: true }, { where: { archived: false } });
+        this.sendCurrentDb(socket, io, sql, true);
+        logger.debug('Completed ' + completedItems[0] + ' items: ');
       });
 
       socket.on('disconnect', () => {
