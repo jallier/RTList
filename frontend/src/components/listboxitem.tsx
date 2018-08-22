@@ -11,6 +11,7 @@ export interface ListBoxItemProps {
   checked: boolean;
   checkedBy?: string;
   checkedById?: number;
+  archived: boolean;
   checkedClickHandler: Function;
   deletedClickHandler: Function;
 }
@@ -45,6 +46,7 @@ export class ListBoxItem extends React.Component<ListBoxItemProps> {
         :
         <Span>{this.props.checkedBy}</Span>
         <DeleteButton onClick={this.handleDeleteClick} />
+        {this.props.archived}
       </ListItem>
     );
   }

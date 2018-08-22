@@ -171,16 +171,39 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.io.emit('completedList');
   }
 
+  private splitLists(items: ListItemsState[]) {
+    let archived: ListItemsState[] = [];
+    let notArchived: ListItemsState[] = [];
+    for (let item of items) {
+      if (item.archived) {
+        archived.push(item);
+      } else {
+        notArchived.push(item);
+      }
+    }
+    return { 'archived': archived, 'notArchived': notArchived };
+  }
+
   render() {
+    // Split into 2 lists
+    let items = this.splitLists(this.state.listItems);
     return (
       <div>
         <div>This is a test {this.props.text}</div>
         <div>
           <List>
             {
-              this.state.listItems.map((item) => (
+              items.notArchived.map((item) => (
                 // tslint:disable-next-line:max-line-length
-                <ListBoxItem addedBy={item.addedBy} text={item.text} id={item.uuid} key={item.uuid} checked={item.checked} checkedBy={item.checkedBy} checkedClickHandler={this.handleListItemClick} deletedClickHandler={this.handleDeleteItemClick} />
+                <ListBoxItem addedBy={item.addedBy} text={item.text} id={item.uuid} key={item.uuid} checked={item.checked} checkedBy={item.checkedBy} checkedClickHandler={this.handleListItemClick} deletedClickHandler={this.handleDeleteItemClick} archived={item.archived} />
+              ))
+            }
+          </List>
+          <List>
+            {
+              items.archived.map((item) => (
+                // tslint:disable-next-line:max-line-length
+                <ListBoxItem addedBy={item.addedBy} text={item.text} id={item.uuid} key={item.uuid} checked={item.checked} checkedBy={item.checkedBy} checkedClickHandler={this.handleListItemClick} deletedClickHandler={this.handleDeleteItemClick} archived={item.archived} />
               ))
             }
           </List>
