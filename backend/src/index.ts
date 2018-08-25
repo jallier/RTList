@@ -287,10 +287,12 @@ class WebsocketsServer {
         logger.debug('Items: ', items);
       });
 
-      socket.on('completedList', async () => {
-        let completedItems = await Item.update({ archived: true }, { where: { archived: false } });
+      socket.on('completedList', async (userId: string) => {
+        let completedItems = await Item.update({ archived: true, checked: true, checked_by: userId }, { where: { archived: false } });
         this.sendCurrentDb(socket, io, sql, true);
         logger.debug('Completed ' + completedItems[0] + ' items: ');
+        let user = await User.findOne({where:{id:userId}});
+        socket.broadcast.emit('notification', `List completed by ${user.username}`)
       });
 
       socket.on('disconnect', () => {

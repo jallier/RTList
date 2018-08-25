@@ -16,3 +16,13 @@ export const Input = styled.default.input`
       margin-bottom: 10px;
       padding: 5px;
     `;
+
+export const ModalContent = styled.default.div`
+  position: absolute;
+  backgroundColor: white;
+  boxShadow: 5px;
+  padding: 5px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+`;

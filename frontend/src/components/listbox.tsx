@@ -5,6 +5,9 @@ import Button from 'material-ui/Button';
 import { ListBoxItem, ListBoxItemProps } from './listboxitem';
 import { InputForm } from './InputForm';
 import { Socket } from 'socket.io-client';
+import Modal from 'material-ui/Modal';
+import { ModalContent } from './styles';
+import Typography from 'material-ui/Typography';
 
 interface ListBoxProps {
   text: string;
@@ -27,6 +30,9 @@ interface ListBoxState {
   text: string;
   listItems: ListItemsState[];
   input: string;
+  modal: {
+    confirmArchived: boolean;
+  };
 }
 
 export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
@@ -34,7 +40,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   constructor(props: ListBoxProps) {
     super(props);
     // tslint:disable-next-line:max-line-length
-    this.state = { text: this.props.text, listItems: [], input: '' };
+    this.state = { text: this.props.text, listItems: [], input: '', modal: { confirmArchived: false } };
     this.io = this.props.io;
 
     this.handleInputSubmit = this.handleInputSubmit.bind(this);
@@ -48,6 +54,8 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.handleShowLogsClick = this.handleShowLogsClick.bind(this);
     this.handleResetButtonClick = this.handleResetButtonClick.bind(this);
     this.handleCompletedButtonClick = this.handleCompletedButtonClick.bind(this);
+    this.handleCompletedConfirmationButtonClick = this.handleCompletedConfirmationButtonClick.bind(this);
+    this.handleModalClose = this.handleModalClose.bind(this);
 
     console.log('emitting getAll');
     this.io.emit('getAll');
@@ -166,9 +174,19 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.io.emit('showLogs');
   }
 
-  public handleCompletedButtonClick(e: React.SyntheticEvent<any>) {
+  public handleCompletedConfirmationButtonClick(e: React.SyntheticEvent<any>) {
     // Should probably have a confirmation popup here
-    this.io.emit('completedList');
+    this.setState({ modal: { confirmArchived: true } });
+  }
+
+  public handleCompletedButtonClick(e: React.SyntheticEvent<any>) {
+    this.setState({ modal: { confirmArchived: false } }, () => {
+      this.io.emit('completedList', this.props.userId);
+    });
+  }
+
+  public handleModalClose(e: React.SyntheticEvent<any>) {
+    this.setState({ modal: { confirmArchived: false } });
   }
 
   private splitLists(items: ListItemsState[]) {
@@ -199,6 +217,9 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
               ))
             }
           </List>
+          <h3>
+            Archived
+          </h3>
           <List>
             {
               items.archived.map((item) => (
@@ -211,12 +232,32 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
           <Button variant="raised" color="secondary" onClick={this.handleResetButtonClick}>
             Reset List
           </Button>
-          <Button variant="raised" color="secondary" style={{ margin: '5px' }} onClick={this.handleCompletedButtonClick}>
-            Completed List
+          <Button variant="raised" color="secondary" style={{ margin: '5px' }} onClick={this.handleCompletedConfirmationButtonClick}>
+            Send all to Archive
           </Button>
           <Button variant="raised" color="secondary" onClick={this.handleShowLogsClick}>
             Show logs in console
           </Button>
+
+          <Modal open={this.state.modal.confirmArchived} onClose={this.handleModalClose}>
+            <div style={{ position: 'absolute', backgroundColor: 'white', boxShadow: '5px', padding: '22px', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
+              <Typography variant="title">
+                Are you sure you want to archive all items?
+              </Typography>
+              <Typography variant="subheading">
+                Warning! This action cannot be undone!
+              </Typography>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '22px' }}>
+                <Button onClick={this.handleModalClose}>
+                  Cancel
+                </Button>
+                <span style={{ width: '10px' }} /> {/** What a hack */}
+                <Button color="primary" variant="raised" onClick={this.handleCompletedButtonClick}>
+                  Archive
+                </Button>
+              </div>
+            </div>
+          </Modal>
         </div>
       </div>
     );
