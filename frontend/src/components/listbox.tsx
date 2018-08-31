@@ -140,7 +140,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
         newText = text;
         newChecked = checked;
         newCheckedBy = checkedBy || this.props.username;
-        newArchived = archived;
+        newArchived = false;
         console.log(uuid, 'was matched');
       }
       newListItems.push({ addedBy: item.addedBy || this.props.username, uuid: item.uuid, text: newText, checked: newChecked, checkedBy: newCheckedBy, archived: newArchived });
@@ -184,11 +184,18 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.io.emit('showLogs');
   }
 
+  /**
+   * Function to show the modal popup for confirming the archive button click
+   * @param e Event
+   */
   public handleCompletedConfirmationButtonClick(e: React.SyntheticEvent<any>) {
-    // Should probably have a confirmation popup here
     this.setState({ modal: { confirmArchived: true } });
   }
 
+  /**
+   * Function to handle the archive button confirmed click
+   * @param e Event
+   */
   public handleCompletedButtonClick(e: React.SyntheticEvent<any>) {
     this.setState({ modal: { confirmArchived: false } }, () => {
       this.io.emit('completedList', this.props.userId);

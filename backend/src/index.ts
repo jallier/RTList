@@ -255,7 +255,7 @@ class WebsocketsServer {
         logger.debug(uuid, { text, checked, checkedBy }, 'was clicked');
         // get the id of the user that checked the item
         try {
-          await Item.update({ text, checked, checked_by: checkedById }, { where: { uuid } });
+          await Item.update({ text, checked, checked_by: checkedById, archived: false }, { where: { uuid } });
         } catch (e) {
           logger.error(e);
         }
