@@ -111,7 +111,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
 
   // This function should invert the current checked state of the item
   public handleListItemClick(e: ListBoxItemProps) {
-    let newListItems = this.getUpdatedListStateItem(e.id, e.text, !e.checked, this.props.username, false);
+    let newListItems = this.getUpdatedListStateItem(e.id, e.text, !e.checked, this.props.username, e.archived);
     this.setState({ listItems: newListItems }, () => {
       // Only emit once the state has been updated. 
       // This could be moved to the start of the function, left here as a reminder
@@ -120,20 +120,30 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 
   // TODO: Rework these two functions to just modify/remove the items in place instead of making a new array
+  /**
+   * This function will check the items in the state and update the matching item based on the uuid
+   * @param uuid ID to match item in state against 
+   * @param text Text of the item
+   * @param checked If the item should be checked or not
+   * @param checkedBy The username of the user who checked the item
+   * @param archived If the item has been archived
+   */
   public getUpdatedListStateItem(uuid: string, text: string, checked: boolean, checkedBy: string, archived: boolean) {
-    console.log(uuid, text, checked);
+    console.log('Item changed', uuid, text, checked);
     let newListItems: ListItemsState[] = [];
     for (let item of this.state.listItems) {
       let newText = item.text;
       let newChecked = item.checked;
       let newCheckedBy = item.checkedBy;
+      let newArchived = item.archived;
       if (item.uuid === uuid) {
         newText = text;
         newChecked = checked;
         newCheckedBy = checkedBy || this.props.username;
+        newArchived = archived;
         console.log(uuid, 'was matched');
       }
-      newListItems.push({ addedBy: item.addedBy || this.props.username, uuid: item.uuid, text: newText, checked: newChecked, checkedBy: newCheckedBy, archived });
+      newListItems.push({ addedBy: item.addedBy || this.props.username, uuid: item.uuid, text: newText, checked: newChecked, checkedBy: newCheckedBy, archived: newArchived });
     }
     return newListItems;
   }
