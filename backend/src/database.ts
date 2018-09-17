@@ -1,10 +1,11 @@
 import * as sequelize from 'sequelize';
 import { logger } from './logger';
+import { hasColumn, addColumn } from './lib/database-functions';
 
 interface UpdateItem {
   'version': number;
   reason: string;
-  update: Function
+  update: (sql: sequelize.Sequelize) => void
 }
 
 export class Database {
@@ -104,13 +105,28 @@ export class Database {
       }
     });
 
+    updates.push({
+      version: 3,
+      reason: 'Adding ordering column to the item table to allow reordering of items',
+      update: (sql: sequelize.Sequelize) => {
+        if (!hasColumn(sql, 'items', 'position')) {
+          addColumn(sql, 'items', 'position', 'INTEGER(4)')
+        }
+      }
+    });
+
     logger.debug('Running sql updates');
     for (let update of updates) {
       if (update.version > currentVersion) {
-        logger.info(update.reason);
-        update.update(this.sql);
-        currentVersion += 1;
-        this.Version.insertOrUpdate({ versionId: currentVersion });
+        try {
+          logger.info(update.reason);
+          update.update(this.sql);
+          currentVersion += 1;
+          this.Version.insertOrUpdate({ versionId: currentVersion });
+        } catch (e) {
+          logger.error('Update exception: ' + e.getMessage());
+          process.exit();
+        }
       }
     }
     logger.debug('updates run. DB versions has been updated to ' + currentVersion);
