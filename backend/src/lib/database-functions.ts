@@ -8,8 +8,11 @@ import { logger } from '../logger'
  * @param column Column to check
  */
 export async function hasColumn(sql: sequelize.Sequelize, table: string, column: string) {
-  let result = await sql.query(`SHOW COLUMNS FROM ${table} LIKE '${column}'`, { type: sequelize.QueryTypes.RAW });
-  return result ? true : false;
+  if(!table || !column){
+    return false;
+  }
+  let tableDescription = await sql.getQueryInterface().describeTable(table);
+  return column in tableDescription;
 }
 
 /**
@@ -24,5 +27,5 @@ export async function addColumn(sql: sequelize.Sequelize, table: string, column:
     logger.error('Please provide the correct arguments for the function');
     throw new Error('Incorrect function arguments');
   }
-  return await sql.query(`ALTER TABLE ${table} ADD COLUMN '${column}' ${definition}`)
+  return await sql.query(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`)
 }

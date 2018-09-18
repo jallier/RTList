@@ -83,7 +83,8 @@ export class Database {
       await this.sql.authenticate()
       logger.info('database succesfully authenticated');
     } catch (e) {
-      logger.error('db error :(');
+      logger.error('db error :(', e);
+      process.exit();
     }
     // First sync the version table so we can use it
     this.Version = this.sql.define('version', {
@@ -108,8 +109,8 @@ export class Database {
     updates.push({
       version: 3,
       reason: 'Adding ordering column to the item table to allow reordering of items',
-      update: (sql: sequelize.Sequelize) => {
-        if (!hasColumn(sql, 'items', 'position')) {
+      update: async (sql: sequelize.Sequelize) => {
+        if (! await hasColumn(sql, 'items', 'position')) {
           addColumn(sql, 'items', 'position', 'INTEGER(4)')
         }
       }
