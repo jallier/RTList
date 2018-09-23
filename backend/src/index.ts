@@ -266,8 +266,17 @@ class WebsocketsServer {
         logger.debug(uuid, text, 'was added by', username);
         // Not great to do a lookup for every insert.
         let user_id = await User.findOne({ where: { username } }) as UserInstance;
-        Item.create({ added_by: user_id.id, uuid, text, checked: false });
-        socket.broadcast.emit('addRemoteItem', username, uuid, text);
+        let count = await Item.count({ where: { archived: 0 } });
+        let position = 0;
+        if (count === 0) {
+          Item.create({ added_by: user_id.id, uuid, text, checked: false, position: position });
+        } else {
+          // Should maybe just store this in a variable to save a db call, but that can come later on
+          let max = await Item.max('position', { where: { archived: 0 } });
+          position = max + 100;
+          Item.create({ added_by: user_id.id, uuid, text, checked: false, position: position });
+        }
+        socket.broadcast.emit('addRemoteItem', username, uuid, text, position);
       });
 
       socket.on('deleteItem', (id: string) => {
@@ -291,7 +300,7 @@ class WebsocketsServer {
         let completedItems = await Item.update({ archived: true, checked: true, checked_by: userId }, { where: { archived: false } });
         this.sendCurrentDb(socket, io, sql, true);
         logger.debug('Completed ' + completedItems[0] + ' items: ');
-        let user = await User.findOne({where:{id:userId}});
+        let user = await User.findOne({ where: { id: userId } });
         socket.broadcast.emit('notification', `List completed by ${user.username}`)
       });
 

@@ -8,7 +8,7 @@ import { logger } from '../logger'
  * @param column Column to check
  */
 export async function hasColumn(sql: sequelize.Sequelize, table: string, column: string) {
-  if(!table || !column){
+  if (!table || !column) {
     return false;
   }
   let tableDescription = await sql.getQueryInterface().describeTable(table);
