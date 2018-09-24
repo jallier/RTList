@@ -29,3 +29,12 @@ export async function addColumn(sql: sequelize.Sequelize, table: string, column:
   }
   return await sql.query(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`)
 }
+
+/**
+ * Returns the next position value after the current highest position i.e the new end of the list
+ * @param Item The item sequelize model
+ */
+export async function getNewMaxPosition(Item: any) {
+  let max = await Item.max('position', { where: { archived: 0 } });
+  return max + 100;
+}

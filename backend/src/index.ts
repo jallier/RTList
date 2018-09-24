@@ -7,6 +7,7 @@ import * as bodyparser from 'body-parser';
 import * as jwtAuth from 'socketio-jwt-auth';
 import { logger } from './logger';
 import { Database } from './database';
+import { getNewMaxPosition } from './lib/database-functions';
 
 interface IListItem {
   text: string;
@@ -255,7 +256,8 @@ class WebsocketsServer {
         logger.debug(uuid, { text, checked, checkedBy }, 'was clicked');
         // get the id of the user that checked the item
         try {
-          await Item.update({ text, checked, checked_by: checkedById, archived: false }, { where: { uuid } });
+          const newPosition = await getNewMaxPosition(Item);
+          await Item.update({ text, checked, checked_by: checkedById, archived: false, position: newPosition }, { where: { uuid } });
         } catch (e) {
           logger.error(e);
         }
@@ -272,8 +274,7 @@ class WebsocketsServer {
           Item.create({ added_by: user_id.id, uuid, text, checked: false, position: position });
         } else {
           // Should maybe just store this in a variable to save a db call, but that can come later on
-          let max = await Item.max('position', { where: { archived: 0 } });
-          position = max + 100;
+          position = await getNewMaxPosition(Item);
           Item.create({ added_by: user_id.id, uuid, text, checked: false, position: position });
         }
         socket.broadcast.emit('addRemoteItem', username, uuid, text, position);
