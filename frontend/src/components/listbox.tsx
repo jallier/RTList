@@ -175,16 +175,14 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     let newListItems: ListItemsState[] = [];
     for (let item of this.state.listItems) {
       if (uuid !== item.uuid) {
-        // TODO: FIX THIS
-        newListItems.push({ addedBy: this.props.username, uuid: item.uuid, text: item.text, checked: item.checked, archived: item.archived, position: 0 });
+        newListItems.push({ addedBy: this.props.username, uuid: item.uuid, text: item.text, checked: item.checked, archived: item.archived, position: item.position });
       }
     }
     return newListItems;
   }
 
-  public handleRemoteListItemStateChange(id: string, text: string, checked: boolean, checkedBy: string, archived: boolean) {
-    // TODO: FIX THIS
-    let newListItems = this.getUpdatedListStateItem(id, text, checked, checkedBy, archived, 0);
+  public handleRemoteListItemStateChange(id: string, text: string, checked: boolean, checkedBy: string, archived: boolean, position: number) {
+    let newListItems = this.getUpdatedListStateItem(id, text, checked, checkedBy, archived, position);
     this.setState({ listItems: newListItems });
   }
 

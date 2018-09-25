@@ -255,18 +255,19 @@ class WebsocketsServer {
       socket.on('checkedItem', async (uuid: string, text: string, checked: boolean, checkedBy: string, checkedById: number) => {
         logger.debug(uuid, { text, checked, checkedBy }, 'was clicked');
         // get the id of the user that checked the item
+        let newPosition = 0;
         try {
           if (checked) {
-            const newPosition = await getNewMaxPosition(Item);
+            newPosition = await getNewMaxPosition(Item);
             await Item.update({ text, checked, checked_by: checkedById, archived: false, position: newPosition }, { where: { uuid } });
           } else {
             // This may cause issues later where there is already a 0th item.
-            await Item.update({ text, checked, checked_by: checkedById, archived: false, position: 0 }, { where: { uuid } });
+            await Item.update({ text, checked, checked_by: checkedById, archived: false, position: newPosition }, { where: { uuid } });
           }
         } catch (e) {
           logger.error(e);
         }
-        socket.broadcast.emit('checkedItem', uuid, text, checked, checkedBy);
+        socket.broadcast.emit('checkedItem', uuid, text, checked, checkedBy, false, newPosition);
       });
 
       socket.on('addItem', async (username: string, uuid: string, text: string) => {
