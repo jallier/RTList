@@ -6,27 +6,18 @@ import * as jwt from 'jsonwebtoken';
 import * as bodyparser from 'body-parser';
 import * as jwtAuth from 'socketio-jwt-auth';
 import { logger } from './logger';
-import { Database } from './database';
-import { getNewMaxPosition } from './lib/database-functions';
+import { Database, DBModel, UserInstance } from './database';
+import { getNewMaxPosition, normalizeItemPositions } from './lib/database-functions';
 
 interface IListItem {
   text: string;
   checked: boolean;
 }
 
-interface UserAttributes {
-  id?: string;
-  username: string;
-  password: string;
-}
-
-type UserInstance = sequelize.Instance<UserAttributes> & UserAttributes;
-type DBModel = sequelize.Model<any, any>;
-
 class Server {
   private db: Database;
-  private Item: sequelize.Model<any, any>; // Hax, but it works
-  private User: sequelize.Model<any, any>;
+  private Item: DBModel // Hax, but it works
+  private User: DBModel;
   private jwtSecret = 'secret!'; // This should go into a conf file later on
   private jwtExpiresIn = '60m';
 
@@ -261,8 +252,10 @@ class WebsocketsServer {
             newPosition = await getNewMaxPosition(Item);
             await Item.update({ text, checked, checked_by: checkedById, archived: false, position: newPosition }, { where: { uuid } });
           } else {
+            // Item unchecked
             // This may cause issues later where there is already a 0th item.
             await Item.update({ text, checked, checked_by: checkedById, archived: false, position: newPosition }, { where: { uuid } });
+            normalizeItemPositions(Item);
           }
         } catch (e) {
           logger.error(e);
@@ -273,15 +266,15 @@ class WebsocketsServer {
       socket.on('addItem', async (username: string, uuid: string, text: string) => {
         logger.debug(uuid, text, 'was added by', username);
         // Not great to do a lookup for every insert.
-        let user_id = await User.findOne({ where: { username } }) as UserInstance;
+        let user = await User.findOne({ where: { username } }) as UserInstance;
         let count = await Item.count({ where: { archived: 0 } });
         let position = 0;
         if (count === 0) {
-          Item.create({ added_by: user_id.id, uuid, text, checked: false, position: position });
+          Item.create({ added_by: user.id, uuid, text, checked: false, position: position });
         } else {
           // Should maybe just store this in a variable to save a db call, but that can come later on
           position = await getNewMaxPosition(Item);
-          Item.create({ added_by: user_id.id, uuid, text, checked: false, position: position });
+          Item.create({ added_by: user.id, uuid, text, checked: false, position: position });
         }
         socket.broadcast.emit('addRemoteItem', username, uuid, text, position);
       });

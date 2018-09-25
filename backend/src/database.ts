@@ -8,6 +8,23 @@ interface UpdateItem {
   update: (sql: sequelize.Sequelize) => void
 }
 
+interface UserAttributes {
+  id?: string;
+  username: string;
+  password: string;
+}
+
+interface ItemAttributes {
+  id?: string;
+  text: string;
+  position: number;
+}
+
+// These should maybe be defined somewhere else
+export type UserInstance = sequelize.Instance<UserAttributes> & UserAttributes;
+export type ItemInstance = sequelize.Instance<ItemAttributes> & ItemAttributes;
+export type DBModel = sequelize.Model<any, any>;
+
 export class Database {
   private sql: sequelize.Sequelize;
   private Item: sequelize.Model<any, any>;

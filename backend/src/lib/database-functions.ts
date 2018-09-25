@@ -1,5 +1,6 @@
 import * as sequelize from 'sequelize';
 import { logger } from '../logger'
+import { DBModel, ItemInstance } from '../database';
 
 /**
  * Check if a given table has a column
@@ -34,7 +35,21 @@ export async function addColumn(sql: sequelize.Sequelize, table: string, column:
  * Returns the next position value after the current highest position i.e the new end of the list
  * @param Item The item sequelize model
  */
-export async function getNewMaxPosition(Item: any) {
+export async function getNewMaxPosition(Item: DBModel) {
   let max = await Item.max('position', { where: { archived: 0 } });
   return max + 100;
+}
+
+/**
+ * Restore the correct ordering of the item positions
+ * @param Item The item sequelize model
+ */
+export async function normalizeItemPositions(Item: DBModel) {
+  let allItems: ItemInstance[] = await Item.findAll({ where: { archived: 0 }, order: [['checked', 'ASC'], ['position', 'ASC']] });
+  let position = 0;
+  for (const item of allItems) {
+    item.position = position;
+    await item.save();
+    position += 100;
+  }
 }
