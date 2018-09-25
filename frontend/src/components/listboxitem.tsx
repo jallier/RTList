@@ -12,6 +12,7 @@ export interface ListBoxItemProps {
   checkedBy?: string;
   checkedById?: number;
   archived: boolean;
+  position: number;
   checkedClickHandler: Function;
   deletedClickHandler: Function;
 }

@@ -24,6 +24,7 @@ interface ListItemsState {
   checkedById?: number;
   text: string;
   archived: boolean;
+  position: number;
 }
 
 interface ListBoxState {
@@ -90,7 +91,8 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   public handleRemoteListItemAdded(username: string, uuid: string, value: string, archived: boolean) {
     console.log(uuid, value, 'was added by', username);
     this.setState(prevState => ({
-      listItems: this.state.listItems.concat([{ addedBy: username, uuid, checked: false, text: value, archived }]),
+      // TODO: FIX THIS
+      listItems: this.state.listItems.concat([{ addedBy: username, uuid, checked: false, text: value, archived, position: 0 }]),
     }));
   }
 
@@ -100,7 +102,8 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     let uuid = uuidGenerator();
     this.io.emit('addItem', this.props.username, uuid, this.state.input);
     this.setState(prevState => ({
-      listItems: this.state.listItems.concat([{ addedBy: this.props.username, uuid, checked: false, text: this.state.input, archived: false }]),
+      // TODO: FIX THIS
+      listItems: this.state.listItems.concat([{ addedBy: this.props.username, uuid, checked: false, text: this.state.input, archived: false, position: 0 }]),
     }));
     e.currentTarget.reset();
   }
@@ -109,13 +112,31 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.setState({ input: e.currentTarget.value });
   }
 
+  /**
+   * Get the highest position value from the current listItems stored in state
+   */
+  private getMaxPosition() {
+    let max = 0;
+    for (let item of this.state.listItems) {
+      if (item.position > max) {
+        max = item.position;
+      }
+    }
+    return max;
+  }
+
   // This function should invert the current checked state of the item
   public handleListItemClick(e: ListBoxItemProps) {
-    let newListItems = this.getUpdatedListStateItem(e.id, e.text, !e.checked, this.props.username, e.archived);
+    let checked = !e.checked; // Reverse this as it represents the current state, not the state it was at the time
+    let maxPosition = 0;
+    if (checked) {
+      maxPosition = this.getMaxPosition() + 100;
+    }
+    let newListItems = this.getUpdatedListStateItem(e.id, e.text, checked, this.props.username, e.archived, maxPosition);
     this.setState({ listItems: newListItems }, () => {
       // Only emit once the state has been updated. 
       // This could be moved to the start of the function, left here as a reminder
-      this.io.emit('checkedItem', e.id, e.text, !e.checked, this.props.username, this.props.userId);
+      this.io.emit('checkedItem', e.id, e.text, checked, this.props.username, this.props.userId);
     });
   }
 
@@ -128,7 +149,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
    * @param checkedBy The username of the user who checked the item
    * @param archived If the item has been archived
    */
-  public getUpdatedListStateItem(uuid: string, text: string, checked: boolean, checkedBy: string, archived: boolean) {
+  public getUpdatedListStateItem(uuid: string, text: string, checked: boolean, checkedBy: string, archived: boolean, position: number) {
     console.log('Item changed', uuid, text, checked);
     let newListItems: ListItemsState[] = [];
     for (let item of this.state.listItems) {
@@ -136,14 +157,16 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
       let newChecked = item.checked;
       let newCheckedBy = item.checkedBy;
       let newArchived = item.archived;
+      let newPosition = item.position;
       if (item.uuid === uuid) {
         newText = text;
         newChecked = checked;
         newCheckedBy = checkedBy || this.props.username;
         newArchived = false;
+        newPosition = position;
         console.log(uuid, 'was matched');
       }
-      newListItems.push({ addedBy: item.addedBy || this.props.username, uuid: item.uuid, text: newText, checked: newChecked, checkedBy: newCheckedBy, archived: newArchived });
+      newListItems.push({ addedBy: item.addedBy || this.props.username, uuid: item.uuid, text: newText, checked: newChecked, checkedBy: newCheckedBy, archived: newArchived, position: newPosition });
     }
     return newListItems;
   }
@@ -152,14 +175,16 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     let newListItems: ListItemsState[] = [];
     for (let item of this.state.listItems) {
       if (uuid !== item.uuid) {
-        newListItems.push({ addedBy: this.props.username, uuid: item.uuid, text: item.text, checked: item.checked, archived: item.archived });
+        // TODO: FIX THIS
+        newListItems.push({ addedBy: this.props.username, uuid: item.uuid, text: item.text, checked: item.checked, archived: item.archived, position: 0 });
       }
     }
     return newListItems;
   }
 
   public handleRemoteListItemStateChange(id: string, text: string, checked: boolean, checkedBy: string, archived: boolean) {
-    let newListItems = this.getUpdatedListStateItem(id, text, checked, checkedBy, archived);
+    // TODO: FIX THIS
+    let newListItems = this.getUpdatedListStateItem(id, text, checked, checkedBy, archived, 0);
     this.setState({ listItems: newListItems });
   }
 
@@ -207,30 +232,46 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 
   private splitLists(items: ListItemsState[]) {
-    let archived: ListItemsState[] = [];
-    let notArchived: ListItemsState[] = [];
+    let archivedList: ListItemsState[] = [];
+    let liveList: ListItemsState[] = [];
     for (let item of items) {
       if (item.archived) {
-        archived.push(item);
+        archivedList.push(item);
       } else {
-        notArchived.push(item);
+        liveList.push(item);
       }
     }
-    return { 'archived': archived, 'notArchived': notArchived };
+    return { archivedList, liveList };
+  }
+
+  /**
+   * Put the list of live items into order based on position value
+   * @param items Items to sort
+   */
+  private orderLiveList(items: ListItemsState[]) {
+    items.sort((a, b) => {
+      if (a.position > b.position) {
+        return 1;
+      } else if (a.position < b.position) {
+        return -1;
+      }
+      return 0;
+    });
   }
 
   render() {
     // Split into 2 lists
     let items = this.splitLists(this.state.listItems);
+    let sortedLiveList = this.orderLiveList(items.liveList);
     return (
       <div>
         <div>This is a test {this.props.text}</div>
         <div>
           <List>
             {
-              items.notArchived.map((item) => (
+              items.liveList.map((item) => (
                 // tslint:disable-next-line:max-line-length
-                <ListBoxItem addedBy={item.addedBy} text={item.text} id={item.uuid} key={item.uuid} checked={item.checked} checkedBy={item.checkedBy} checkedClickHandler={this.handleListItemClick} deletedClickHandler={this.handleDeleteItemClick} archived={item.archived} />
+                <ListBoxItem addedBy={item.addedBy} text={item.text} id={item.uuid} key={item.uuid} checked={item.checked} checkedBy={item.checkedBy} checkedClickHandler={this.handleListItemClick} deletedClickHandler={this.handleDeleteItemClick} archived={item.archived} position={0} />
               ))
             }
           </List>
@@ -239,9 +280,9 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
           </h3>
           <List>
             {
-              items.archived.map((item) => (
+              items.archivedList.map((item) => (
                 // tslint:disable-next-line:max-line-length
-                <ListBoxItem addedBy={item.addedBy} text={item.text} id={item.uuid} key={item.uuid} checked={item.checked} checkedBy={item.checkedBy} checkedClickHandler={this.handleListItemClick} deletedClickHandler={this.handleDeleteItemClick} archived={item.archived} />
+                <ListBoxItem addedBy={item.addedBy} text={item.text} id={item.uuid} key={item.uuid} checked={item.checked} checkedBy={item.checkedBy} checkedClickHandler={this.handleListItemClick} deletedClickHandler={this.handleDeleteItemClick} archived={item.archived} position={0} />
               ))
             }
           </List>

@@ -256,8 +256,13 @@ class WebsocketsServer {
         logger.debug(uuid, { text, checked, checkedBy }, 'was clicked');
         // get the id of the user that checked the item
         try {
-          const newPosition = await getNewMaxPosition(Item);
-          await Item.update({ text, checked, checked_by: checkedById, archived: false, position: newPosition }, { where: { uuid } });
+          if (checked) {
+            const newPosition = await getNewMaxPosition(Item);
+            await Item.update({ text, checked, checked_by: checkedById, archived: false, position: newPosition }, { where: { uuid } });
+          } else {
+            // This may cause issues later where there is already a 0th item.
+            await Item.update({ text, checked, checked_by: checkedById, archived: false, position: 0 }, { where: { uuid } });
+          }
         } catch (e) {
           logger.error(e);
         }
