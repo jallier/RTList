@@ -88,11 +88,11 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 
   // TODO: make me match the other function below
-  public handleRemoteListItemAdded(username: string, uuid: string, value: string, archived: boolean) {
+  public handleRemoteListItemAdded(username: string, uuid: string, value: string, position: number) {
     console.log(uuid, value, 'was added by', username);
     this.setState(prevState => ({
       // TODO: FIX THIS
-      listItems: this.state.listItems.concat([{ addedBy: username, uuid, checked: false, text: value, archived, position: 0 }]),
+      listItems: this.state.listItems.concat([{ addedBy: username, uuid, checked: false, text: value, archived: false, position }]),
     }));
   }
 
@@ -229,6 +229,10 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.setState({ modal: { confirmArchived: false } });
   }
 
+  /**
+   * Split the state list into archived and live list for display purposes
+   * @param items List of items to split
+   */
   private splitLists(items: ListItemsState[]) {
     let archivedList: ListItemsState[] = [];
     let liveList: ListItemsState[] = [];
@@ -258,9 +262,8 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 
   render() {
-    // Split into 2 lists
     let items = this.splitLists(this.state.listItems);
-    let sortedLiveList = this.orderLiveList(items.liveList);
+    this.orderLiveList(items.liveList);
     return (
       <div>
         <div>This is a test {this.props.text}</div>

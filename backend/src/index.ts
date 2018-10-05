@@ -267,15 +267,9 @@ class WebsocketsServer {
         logger.debug(uuid, text, 'was added by', username);
         // Not great to do a lookup for every insert.
         let user = await User.findOne({ where: { username } }) as UserInstance;
-        let count = await Item.count({ where: { archived: 0 } });
         let position = 0;
-        if (count === 0) {
-          Item.create({ added_by: user.id, uuid, text, checked: false, position: position });
-        } else {
-          // Should maybe just store this in a variable to save a db call, but that can come later on
-          position = await getNewMaxPosition(Item);
-          Item.create({ added_by: user.id, uuid, text, checked: false, position: position });
-        }
+        Item.create({ added_by: user.id, uuid, text, checked: false, position });
+        normalizeItemPositions(Item); // This is gonna be a source of inefficiencies - there should be a better way to do this
         socket.broadcast.emit('addRemoteItem', username, uuid, text, position);
       });
 

@@ -42,11 +42,13 @@ export async function getNewMaxPosition(Item: DBModel) {
 
 /**
  * Restore the correct ordering of the item positions
+ * This will set the ordering of the items from 100 to n00, leaving space at 0 to insert new items
+ * This is going to be very inefficient and not scalable, but it will do the job for now until I think of something better.
  * @param Item The item sequelize model
  */
 export async function normalizeItemPositions(Item: DBModel) {
   let allItems: ItemInstance[] = await Item.findAll({ where: { archived: 0 }, order: [['checked', 'ASC'], ['position', 'ASC']] });
-  let position = 0;
+  let position = 100;
   for (const item of allItems) {
     item.position = position;
     await item.save();
