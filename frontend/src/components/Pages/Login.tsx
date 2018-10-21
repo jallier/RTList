@@ -7,6 +7,7 @@ import { postData } from '../../lib/fetch';
 import { CenteredLayout } from '../CenteredLayout';
 import * as styled from '../styled-components';
 import { Input, PaperStyle } from '../styles';
+import { server } from '../App';
 
 interface LoginProps {
   redirectToOnSuccess: string;
@@ -53,7 +54,7 @@ export class Login extends React.Component<LoginProps, LoginState> {
 
   private async login(username: string, password: string) {
     return new Promise<string>(async (res, rej) => {
-      const responseToken = await postData('http://localhost:3001/login', { username, password });
+      const responseToken = await postData(`http://${server.host}:${server.port}/login`, { username, password });
       let token: { token: string | undefined, error?: string | undefined } = await responseToken.json();
       if (token.token) {
         console.log(token.token);
@@ -69,7 +70,7 @@ export class Login extends React.Component<LoginProps, LoginState> {
       return (
         <CenteredLayout height={'300px'}>
           <Paper elevation={4} style={PaperStyle}>
-            <p>You are not authenticated. Please login to see this page</p>
+            <p>You are not authenticated. Please login to see this page.</p>
             <form onSubmit={this.handleInputSubmit}>
               <Input name="username" onChange={this.handleUsernameChange} placeholder="Username" />
               <br />

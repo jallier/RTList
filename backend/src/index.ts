@@ -92,7 +92,8 @@ class WebServer {
 
   private configureRoutes(app: express.Express) {
     app.get('/', (req, res) => {
-      res.sendFile(__dirname + '/index.html');
+      // res.sendFile(__dirname + '/index.html');
+      res.send('Successful request!');
       logger.debug('sending response to client');
     });
 

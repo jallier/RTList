@@ -37,6 +37,11 @@ interface ListProps {
   userId: number;
 }
 
+export const server = {
+  host: process.env.REACT_APP_SERVER_HOST || 'localhost',
+  port: process.env.REACT_APP_SERVER_PORT || '3001'
+};
+
 export class List extends React.Component<ListProps, any> {
   public render() {
     return (
@@ -70,7 +75,7 @@ export class App extends React.Component<any, AppState> {
   }
 
   private handleConnectToSocket(token: string) {
-    this.io = socket.connect('http://localhost:3001', { secure: true, query: 'auth_token=' + token });
+    this.io = socket.connect(`http://${server.host}:${server.port}`, { secure: true, query: 'auth_token=' + token });
     this.io.on('disconnectClient', () => { this.setState({ auth: undefined }); });
   }
 

@@ -33,7 +33,7 @@ export class Database {
 
   public constructor() {
     this.sql = new sequelize('rtlist', 'root', 'rootpassword', {
-      host: '127.0.0.1',
+      host: process.env.ENVIRONMENT === 'docker' ? 'maria' : '127.0.0.1',
       dialect: 'mysql',
       operatorsAliases: false,
       logging: false
@@ -65,19 +65,19 @@ export class Database {
       password: { type: sequelize.STRING }
     });
 
-    this.User.sync();
-    this.Item.sync();
+    await this.User.sync();
+    await this.Item.sync();
 
     // Set up foreign key associations
     this.User.hasMany(this.Item, { foreignKey: 'added_by' });
     this.User.hasMany(this.Item, { foreignKey: 'checked_by' });
 
-    this.User.sync();
-    this.Item.sync();
+    await this.User.sync();
+    await this.Item.sync();
 
     // Add some defaults to the db if they aren't there already
-    this.User.upsert({ username: 'admin', email: 'admin@localhost.com', password: 'admin' });
-    this.User.upsert({ username: 'test1', email: 'test@localhost.com', password: 'test1' });
+    await this.User.upsert({ username: 'admin', email: 'admin@localhost.com', password: 'admin' });
+    await this.User.upsert({ username: 'test1', email: 'test@localhost.com', password: 'test1' });
     // this.Item.upsert({ uuid: '1def48f0-3adb-11e8-b13e-35e3613a0a20', text: 'Sample item', added_by: 1, checked: false, checked_by: null });
     // this.Item.upsert({ uuid: '1def48f0-3adb-11e8-b13e-35e3613a0a31', text: 'Sample item', added_by: 2, checked: true, checked_by: 1 });
 
@@ -109,8 +109,8 @@ export class Database {
       id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true },
       versionId: { type: sequelize.INTEGER }
     });
-    this.Version.sync();
-    this.Version.upsert({ id: 1, versionId: 1 });
+    await this.Version.sync();
+    await this.Version.upsert({ id: 1, versionId: 1 });
 
     let updates: UpdateItem[] = [];
     let currentVersionResults = await this.sql.query('SELECT * FROM `versions` ORDER BY id DESC LIMIT 1', { type: sequelize.QueryTypes.SELECT });

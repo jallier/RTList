@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "tsc --watch",
     "start": "nodemon \"dist/index.js\" --watch \"dist/\" --watch \"config.json\" ",
-    "dev": "concurrently \"npm run compile\" \"npm run start\" "
+    "dev": "concurrently \"npm run compile\" \"npm run start\" ",
+    "build": "tsc"
   },
   "author": "",
   "license": "ISC",
