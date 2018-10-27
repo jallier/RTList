@@ -3,18 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@material-ui/core": "^3.2.0",
+    "@material-ui/icons": "^3.0.1",
     "@types/jsonwebtoken": "^7.2.6",
-    "@types/react-router-dom": "^4.2.6",
+    "@types/react-router-dom": "^4.3.1",
     "@types/socket.io-client": "^1.4.32",
     "@types/uuid": "^3.4.3",
+    "emotion": "^9.2.12",
     "jsonwebtoken": "^8.2.1",
-    "material-ui": "^1.0.0-beta.37",
-    "react": "^16.2.0",
-    "react-dom": "^16.2.0",
-    "react-router-dom": "^4.2.2",
+    "react": "^16.5.2",
+    "react-dom": "^16.5.2",
+    "react-emotion": "^9.2.12",
+    "react-router-dom": "^4.3.1",
     "react-scripts-ts": "2.13.0",
     "socket.io-client": "^2.0.4",
-    "styled-components": "^3.2.1",
     "styled-jss": "^2.2.2",
     "uuid": "^3.2.1"
   },
@@ -27,8 +29,9 @@
   "devDependencies": {
     "@types/jest": "^22.2.0",
     "@types/node": "^9.4.6",
-    "@types/react": "^16.0.40",
-    "@types/react-dom": "^16.0.3",
-    "typescript": "^2.7.2"
+    "@types/react": "^16.4.16",
+    "@types/react-dom": "^16.0.9",
+    "stylelint-config-standard": "^18.2.0",
+    "typescript": "^2.9.2"
   }
 }

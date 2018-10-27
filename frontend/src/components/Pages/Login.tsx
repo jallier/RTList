@@ -1,12 +1,11 @@
 import * as React from 'react';
-import Button from 'material-ui/Button/Button';
+import Button from '@material-ui/core/Button';
 import { Redirect } from 'react-router';
 import { SnackbarError } from '../SnackbarError';
-import Paper from 'material-ui/Paper';
 import { postData } from '../../lib/fetch';
 import { CenteredLayout } from '../CenteredLayout';
-import * as styled from '../styled-components';
-import { Input, PaperStyle } from '../styles';
+import Typography from '@material-ui/core/Typography';
+import { StyledPaper, Form, StyledTextField } from '../styles';
 import { server } from '../App';
 
 interface LoginProps {
@@ -68,20 +67,34 @@ export class Login extends React.Component<LoginProps, LoginState> {
   public render() {
     if (!this.state.isAuth) {
       return (
-        <CenteredLayout height={'300px'}>
-          <Paper elevation={4} style={PaperStyle}>
-            <p>You are not authenticated. Please login to see this page.</p>
-            <form onSubmit={this.handleInputSubmit}>
-              <Input name="username" onChange={this.handleUsernameChange} placeholder="Username" />
-              <br />
-              <Input name="password" onChange={this.handlePasswordChange} placeholder="Password" />
-              <br />
-              <Button type="submit" variant="raised">
+        <CenteredLayout height={'400px'}>
+          <StyledPaper elevation={4}>
+            <Typography variant="h4">Log In</Typography>
+            <br />
+            <Form onSubmit={this.handleInputSubmit}>
+              <StyledTextField
+                name="username"
+                variant="outlined"
+                label="Username"
+                onChange={this.handleUsernameChange}
+              />
+              <StyledTextField
+                name="password"
+                label="Password"
+                variant="outlined"
+                type="password"
+                onChange={this.handlePasswordChange}
+              />
+              <Button type="submit" variant="contained" color="primary">
                 Login
-            </Button>
-            </form>
-            <SnackbarError show={this.state.loginFailure} message={'Failed to login: ' + this.state.loginFailureReason} onClose={(event, reason) => { this.setState({ loginFailure: false }); }} />
-          </Paper>
+              </Button>
+            </Form>
+            <SnackbarError
+              show={this.state.loginFailure}
+              message={'Failed to login: ' + this.state.loginFailureReason}
+              onClose={(event, reason) => { this.setState({ loginFailure: false }); }}
+            />
+          </StyledPaper>
         </CenteredLayout>
       );
     } else {

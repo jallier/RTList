@@ -1,14 +1,9 @@
 import * as React from 'react';
 import '../css/App.css';
 import { ListBox } from './listbox';
-import * as styled from './styled-components';
-import { Redirect } from 'react-router';
-import { InputForm } from './InputForm';
-import Button from 'material-ui/Button/Button';
 import { Home } from './Pages/Home';
 import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
 import { ProtectedRoute, ProtectedRouteProps } from './PrivateRoute';
-import { Test } from './Test';
 import { Login } from './Pages/Login';
 import { Register } from './Pages/Register';
 import * as jwt from 'jsonwebtoken';
@@ -16,10 +11,12 @@ import * as socket from 'socket.io-client';
 import { Header } from './Header';
 import { Error404 } from './Pages/404';
 import { Profile } from './Pages/Profile';
+import { PaddedBody } from './PaddedBody';
+import styled from 'react-emotion';
 // const logo = require('./logo.svg');
 
-const Body = styled.default.div`
-  background-color: #EEEEEE
+const Body = styled('div')`
+  background-color: #EEEEEE;
 `;
 
 interface AppState {
@@ -45,14 +42,11 @@ export const server = {
 export class List extends React.Component<ListProps, any> {
   public render() {
     return (
-      <div>
-        <header>
-          <h1>List</h1>
-        </header>
+      <PaddedBody>
         <Body>
-          <ListBox text="ayy lmao" io={this.props.io} username={this.props.username} userId={this.props.userId} />
+          <ListBox io={this.props.io} username={this.props.username} userId={this.props.userId} />
         </Body>
-      </div>
+      </PaddedBody>
     );
   }
 }
@@ -72,6 +66,7 @@ export class App extends React.Component<any, AppState> {
     }
 
     this.handleLogin = this.handleLogin.bind(this);
+    this.handleLogout = this.handleLogout.bind(this);
   }
 
   private handleConnectToSocket(token: string) {
@@ -91,7 +86,11 @@ export class App extends React.Component<any, AppState> {
         expiresAt: decodedToken ? decodedToken['exp'] : undefined
       }
     });
+  }
 
+  public handleLogout() {
+    sessionStorage.removeItem('token');
+    this.setState({ auth: undefined });
   }
 
   public render(): JSX.Element {
@@ -121,7 +120,7 @@ export class App extends React.Component<any, AppState> {
             isAuthenticated={this.state.auth ? true : false}
             redirectToPath={'/login'}
             path="/profile"
-            render={(props) => <Profile />}
+            render={(props) => <Profile handleLogout={this.handleLogout} />}
           />
           <Route component={Error404} />
         </Switch>

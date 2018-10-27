@@ -1,6 +1,7 @@
 import * as React from 'react';
-import * as styled from './styled-components';
+import styled from 'react-emotion';
 import { Link } from 'react-router-dom';
+import { PaddedBody } from './PaddedBody';
 
 type Children = JSX.Element[]; // | JSX.Element | string;
 
@@ -10,11 +11,11 @@ interface HeaderProps {
   links?: { to: string, text: string }[];
 }
 
-const Li = styled.default.div`
+const Li = styled('div')`
   padding-right: 5px;
 `;
 
-const Nav = styled.default.nav`
+const Nav = styled('nav')`
   width: 100%;
   height: 50px;
   background-color: red;
@@ -42,10 +43,12 @@ export class Header extends React.Component<HeaderProps> {
       }
     }
     return (
-      <Nav>
-        {output}
-        {this.props.children}
-      </Nav>
+      <PaddedBody backgroundColor="red">
+        <Nav>
+          {output}
+          {this.props.children}
+        </Nav>
+      </PaddedBody>
     );
   }
 }

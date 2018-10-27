@@ -1,8 +1,10 @@
-import { ListItem, ListItemText } from 'material-ui/List';
-import Checkbox from 'material-ui/Checkbox';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import Checkbox from '@material-ui/core/Checkbox';
 import * as React from 'react';
 import { DeleteButton } from './deleteButton';
-import * as styled from '../components/styled-components';
+import styled from 'react-emotion';
+import { StyledListItemCheckbox, StyledListItem, StyledListItemText } from './styles';
 
 export interface ListBoxItemProps {
   id: string;
@@ -17,17 +19,11 @@ export interface ListBoxItemProps {
   deletedClickHandler: Function;
 }
 
-const ListItemStyle = {
-  height: '50px',
-  borderBottom: '1px solid grey',
-  borderTop: '1px solid grey',
-};
-
 const ListItemTextStyle = {
   textDecoration: 'line-through',
 };
 
-const Span = styled.default.span`
+const Span = styled('span')`
   color: grey;
 `;
 
@@ -38,19 +34,6 @@ export class ListBoxItem extends React.Component<ListBoxItemProps> {
     this.handleDeleteClick = this.handleDeleteClick.bind(this);
   }
 
-  render() {
-    return (
-      <ListItem style={ListItemStyle} className="list-box-item">
-        <Checkbox checked={!!+this.props.checked} onClick={this.handleSubClick} />
-        <ListItemText primary={this.props.text} style={this.props.checked ? ListItemTextStyle : {}} />
-        <Span>{this.props.addedBy}</Span>
-        :
-        <Span>{this.props.checkedBy}</Span>
-        <DeleteButton onClick={this.handleDeleteClick} />
-        {this.props.archived}
-      </ListItem>
-    );
-  }
   // pass this through a method so that the arguments can be passed back up to the parent
   private handleSubClick() {
     this.props.checkedClickHandler(this.props);
@@ -58,5 +41,24 @@ export class ListBoxItem extends React.Component<ListBoxItemProps> {
 
   private handleDeleteClick(e: React.SyntheticEvent<any>) {
     this.props.deletedClickHandler(this.props.id);
+  }
+  render() {
+    return (
+      <StyledListItem >
+        <StyledListItemCheckbox checked={!!+this.props.checked} onClick={this.handleSubClick} />
+        <StyledListItemText
+          strikethrough={!!this.props.checked}         
+          primary={this.props.text}
+        />
+        <Span>
+          {this.props.addedBy}
+        </Span>
+        {!this.props.checkedBy ? '' : ':'}
+        <Span>
+          {this.props.checkedBy}
+        </Span>
+        <DeleteButton onClick={this.handleDeleteClick} />
+      </StyledListItem>
+    );
   }
 }

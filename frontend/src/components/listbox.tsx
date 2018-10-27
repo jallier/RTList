@@ -1,21 +1,36 @@
 import * as React from 'react';
 import * as uuidGenerator from 'uuid/v1';
-import List from 'material-ui/List';
-import Button from 'material-ui/Button';
+import List from '@material-ui/core/List';
+import Button from '@material-ui/core/Button';
 import { ListBoxItem, ListBoxItemProps } from './listboxitem';
-import { InputForm } from './InputForm';
+import { InputListItem } from './InputListItem';
 import { Socket } from 'socket.io-client';
-import Modal from 'material-ui/Modal';
+import Modal from '@material-ui/core/Modal';
 import { ModalContent } from './styles';
-import Typography from 'material-ui/Typography';
+import Typography from '@material-ui/core/Typography';
+import TextField from '@material-ui/core/TextField';
+import MenuIcon from '@material-ui/icons/Menu';
+import { SimpleMenu } from './SimpleMenu';
+import styled from 'react-emotion';
+
+const StyledList = styled(List)`
+  border-top: 1px solid grey;
+  padding-top: 0px;
+`;
 
 interface ListBoxProps {
-  text: string;
   username: string;
   userId: number;
   io: SocketIOClient.Socket;
 }
 
+interface ListBoxState {
+  listItems: ListItemsState[];
+  input: string;
+  modal: {
+    confirmArchived: boolean;
+  };
+}
 interface ListItemsState {
   addedBy: string;
   uuid: string;
@@ -27,21 +42,11 @@ interface ListItemsState {
   position: number;
 }
 
-interface ListBoxState {
-  text: string;
-  listItems: ListItemsState[];
-  input: string;
-  modal: {
-    confirmArchived: boolean;
-  };
-}
-
 export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   private io: SocketIOClient.Socket;
   constructor(props: ListBoxProps) {
     super(props);
-    // tslint:disable-next-line:max-line-length
-    this.state = { text: this.props.text, listItems: [], input: '', modal: { confirmArchived: false } };
+    this.state = { listItems: [], input: '', modal: { confirmArchived: false } };
     this.io = this.props.io;
 
     this.handleInputSubmit = this.handleInputSubmit.bind(this);
@@ -266,44 +271,73 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.orderLiveList(items.liveList);
     return (
       <div>
-        <div>This is a test {this.props.text}</div>
+        <header>
+          <Typography variant="h3">
+            <SimpleMenu
+              menuItems={[
+                { text: 'Reset List', callback: this.handleResetButtonClick },
+                { text: 'Send active items to archive', callback: this.handleCompletedConfirmationButtonClick }
+              ]}
+            >
+              <MenuIcon />
+            </SimpleMenu>
+            List
+            </Typography>
+        </header>
         <div>
-          <List>
+          <InputListItem
+            label="Add Item, press Enter to save"
+            width="100%"
+            handleSubmit={this.handleInputSubmit}
+            handleChange={this.handleInputChange}
+          />
+          <StyledList>
             {
               items.liveList.map((item) => (
-                // tslint:disable-next-line:max-line-length
-                <ListBoxItem addedBy={item.addedBy} text={item.text} id={item.uuid} key={item.uuid} checked={item.checked} checkedBy={item.checkedBy} checkedClickHandler={this.handleListItemClick} deletedClickHandler={this.handleDeleteItemClick} archived={item.archived} position={0} />
+                <ListBoxItem
+                  addedBy={item.addedBy}
+                  text={item.text}
+                  id={item.uuid}
+                  key={item.uuid}
+                  checked={item.checked}
+                  checkedBy={item.checkedBy}
+                  checkedClickHandler={this.handleListItemClick}
+                  deletedClickHandler={this.handleDeleteItemClick}
+                  archived={item.archived}
+                  position={item.position}
+                />
               ))
             }
-          </List>
+          </StyledList>
           <h3>
             Archived
           </h3>
-          <List>
+          <StyledList>
             {
               items.archivedList.map((item) => (
-                // tslint:disable-next-line:max-line-length
-                <ListBoxItem addedBy={item.addedBy} text={item.text} id={item.uuid} key={item.uuid} checked={item.checked} checkedBy={item.checkedBy} checkedClickHandler={this.handleListItemClick} deletedClickHandler={this.handleDeleteItemClick} archived={item.archived} position={0} />
+                <ListBoxItem
+                  addedBy={item.addedBy}
+                  text={item.text}
+                  id={item.uuid}
+                  key={item.uuid}
+                  checked={item.checked}
+                  checkedBy={item.checkedBy}
+                  checkedClickHandler={this.handleListItemClick}
+                  deletedClickHandler={this.handleDeleteItemClick}
+                  archived={item.archived}
+                  position={0}
+                />
               ))
             }
-          </List>
-          <InputForm handleSubmit={this.handleInputSubmit} handleChange={this.handleInputChange} />
-          <Button variant="raised" color="secondary" onClick={this.handleResetButtonClick}>
-            Reset List
-          </Button>
-          <Button variant="raised" color="secondary" style={{ margin: '5px' }} onClick={this.handleCompletedConfirmationButtonClick}>
-            Send all to Archive
-          </Button>
-          <Button variant="raised" color="secondary" onClick={this.handleShowLogsClick}>
-            Show logs in console
-          </Button>
+          </StyledList>
 
+          {/* Modal code */}
           <Modal open={this.state.modal.confirmArchived} onClose={this.handleModalClose}>
             <div style={{ position: 'absolute', backgroundColor: 'white', boxShadow: '5px', padding: '22px', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
-              <Typography variant="title">
+              <Typography variant="h6">
                 Are you sure you want to archive all items?
               </Typography>
-              <Typography variant="subheading">
+              <Typography variant="subtitle1">
                 Warning! This action cannot be undone!
               </Typography>
               <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '22px' }}>
@@ -311,7 +345,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
                   Cancel
                 </Button>
                 <span style={{ width: '10px' }} /> {/** What a hack */}
-                <Button color="primary" variant="raised" onClick={this.handleCompletedButtonClick}>
+                <Button color="primary" variant="contained" onClick={this.handleCompletedButtonClick}>
                   Archive
                 </Button>
               </div>

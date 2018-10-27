@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as styled from './styled-components';
+import styled from 'react-emotion';
 
 interface CenteredLayoutProps {
   height?: string;
@@ -10,7 +10,7 @@ interface DivProps {
   height?: string;
 }
 
-const Div = styled.default.div`
+const Div = styled('div')`
   align-items: center;
   display: flex;
   justify-content: center;

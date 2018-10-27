@@ -1,6 +1,12 @@
 import * as React from 'react';
-import Icon from 'material-ui/Icon';
-import IconButton from 'material-ui/IconButton';
+import Icon from '@material-ui/core/Icon';
+import IconButton from '@material-ui/core/IconButton';
+import styled from 'react-emotion';
+
+const StyledIconButton = styled(IconButton)`
+  display: none;
+  margin-left: 5px;
+`;
 
 interface DeleteButtonProps {
   text?: string;
@@ -17,9 +23,9 @@ export class DeleteButton extends React.Component<DeleteButtonProps> {
   render() {
     return (
       <div>
-        <IconButton aria-label="delete" className="delete-button" onClick={this.props.onClick} >
+        <StyledIconButton aria-label="delete"  onClick={this.props.onClick} >
           <Icon>delete</Icon>
-        </IconButton>
+        </StyledIconButton>
       </div>
     );
   }

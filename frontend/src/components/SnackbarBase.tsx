@@ -1,11 +1,11 @@
 import * as React from 'react';
-import Snackbar, { SnackbarContentProps } from 'material-ui/Snackbar';
+import Snackbar from '@material-ui/core/Snackbar';
 
 export interface SnackbarBaseProps {
   show: boolean;
   message: string;
   onClose: (event: React.SyntheticEvent<any>, reason: string) => void;
-  SnackbarBaseContentProps?: Partial<SnackbarContentProps>;
+  SnackbarBaseContentProps?: Partial<any>;
 }
 
 export class SnackbarBase extends React.Component<SnackbarBaseProps> {
@@ -18,7 +18,7 @@ export class SnackbarBase extends React.Component<SnackbarBaseProps> {
         autoHideDuration={3000}
         message={<span>{this.props.message}</span>}
         onClose={this.props.onClose}
-        SnackbarContentProps={this.props.SnackbarBaseContentProps}
+        ContentProps={this.props.SnackbarBaseContentProps}
       />
     );
   }
