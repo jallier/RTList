@@ -8,6 +8,7 @@ import * as jwtAuth from 'socketio-jwt-auth';
 import { logger } from './logger';
 import { Database, DBModel, UserInstance } from './database';
 import { getNewMaxPosition, normalizeItemPositions } from './lib/database-functions';
+import * as bcrypt from 'bcryptjs';
 
 interface IListItem {
   text: string;
@@ -111,7 +112,8 @@ class WebServer {
         res.send(JSON.stringify({ error: 'Cannot find user', token: null }));
         return;
       }
-      if (user.password !== password) {
+      const passwordMatches = await bcrypt.compare(password, user.password);
+      if (!passwordMatches) {
         res.send(JSON.stringify({ error: 'password does not match', token: null }));
         return;
       }
@@ -138,9 +140,10 @@ class WebServer {
       if (!password) {
         return res.send(JSON.stringify({ error: 'No password sent' }));
       }
-      let user;
+      let user: UserInstance;
+      let passwordHash = await this.getPasswordHash(password);
       try {
-        user = await this.User.create({ username, email, password }) as UserInstance;
+        user = await this.User.create({ username, email, password: passwordHash });
       } catch (e) {
         const error: string = e.errors[0].message;
         console.error('Error registering new user: ', error);
@@ -156,6 +159,13 @@ class WebServer {
 
       res.send(JSON.stringify({ 'token': token }));
     });
+  }
+
+  private async getPasswordHash(password: string) {
+    const saltRounds = 10;
+    const salt = await bcrypt.genSalt(saltRounds);
+    const hash = await bcrypt.hash(password, salt);
+    return hash;
   }
 
   private getServer() {

@@ -96,6 +96,7 @@ export class Register extends React.Component<RegisterProps, RegisterState> {
                 name="password"
                 label="Password"
                 variant="outlined"
+                type="password"
                 onChange={this.handlePasswordChange}
               />
               <Button type="submit" variant="contained" color="primary">
