@@ -38,7 +38,7 @@ const hostGiven = !!process.env.REACT_APP_SERVER_HOST;
 const host = process.env.REACT_APP_SERVER_HOST || 'localhost';
 const port = '3001';
 export const server = {
-  baseUrl: (hostGiven ? 'http' : 'https') + '://' + host + (!hostGiven ? port : '')
+  baseUrl: (hostGiven ? 'https' : 'http') + '://' + host + (!hostGiven ? port : '')
 };
 
 export class List extends React.Component<ListProps, any> {
