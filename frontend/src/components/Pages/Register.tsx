@@ -59,7 +59,7 @@ export class Register extends React.Component<RegisterProps, RegisterState> {
 
   private async register(username: string, email: string, password: string) {
     return new Promise<string>(async (res, rej) => {
-      const responseToken = await postData(`http://${server.host}:${server.port}/register`, { username, email, password });
+      const responseToken = await postData(`${server.baseUrl}/register`, { username, email, password });
       let token = await responseToken.json();
       if (token.token) {
         console.log(token.token);

@@ -53,7 +53,7 @@ export class Login extends React.Component<LoginProps, LoginState> {
 
   private async login(username: string, password: string) {
     return new Promise<string>(async (res, rej) => {
-      const responseToken = await postData(`http://${server.host}:${server.port}/login`, { username, password });
+      const responseToken = await postData(`${server.baseUrl}/login`, { username, password });
       let token: { token: string | undefined, error?: string | undefined } = await responseToken.json();
       if (token.token) {
         console.log(token.token);
