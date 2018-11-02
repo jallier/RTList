@@ -28,6 +28,7 @@ services:
       - "5000:5000"
     depends_on:
       - rtback
+    restart: always
     links:
       - rtback
 
