@@ -75,7 +75,7 @@ export class Register extends React.Component<RegisterProps, RegisterState> {
       return (<Redirect to={this.props.redirectOnSuccess} />);
     } else {
       return (
-        <CenteredLayout height={'400px'}>
+        <CenteredLayout topmargin={'25px'}>
           <StyledPaper elevation={4}>
             <Typography variant="h4">Sign up for an account</Typography>
             <br />

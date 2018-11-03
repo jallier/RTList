@@ -53,6 +53,10 @@ const PaperS: SFC<PaperProps> = ({
   ...props
 }) => (<Paper className={className} {...props}>{children}</Paper>);
 
+interface StyledPaperProps {
+  width?: string;
+}
+
 export const StyledPaper = styled(PaperS)`
   display: flex;
   flex-direction: column;
@@ -60,6 +64,7 @@ export const StyledPaper = styled(PaperS)`
   align-items: center;
   padding: 25px;
   width: 470px;
+  ${(props: StyledPaperProps) => 'width: ' + props.width + ';' || '470px;'} 
   ${phoneMQ} {
     width: 100%;
   }

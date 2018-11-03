@@ -67,7 +67,7 @@ export class Login extends React.Component<LoginProps, LoginState> {
   public render() {
     if (!this.state.isAuth) {
       return (
-        <CenteredLayout height={'400px'}>
+        <CenteredLayout topmargin={'25px'}>
           <StyledPaper elevation={4}>
             <Typography variant="h4">Log In</Typography>
             <br />
