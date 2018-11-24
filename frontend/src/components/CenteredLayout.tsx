@@ -2,25 +2,25 @@ import * as React from 'react';
 import styled from 'react-emotion';
 
 interface CenteredLayoutProps {
-  topmargin?: string;
+  toppadding?: string;
   children: JSX.Element[] | JSX.Element | string;
 }
 
 interface DivProps {
-  topmargin?: string;
+  toppadding?: string;
 }
 
 const Div = styled('div')`
   align-items: center;
   display: flex;
   justify-content: center;
-  ${(props: DivProps) => 'margin-top: ' + props.topmargin + ';' || ''} 
+  ${(props: DivProps) => 'padding-top: ' + props.toppadding + ';' || ''} 
 `;
 
 export class CenteredLayout extends React.Component<CenteredLayoutProps> {
   public render() {
     return (
-      <Div topmargin={this.props.topmargin}>
+      <Div toppadding={this.props.toppadding}>
         {this.props.children}
       </Div>
     );

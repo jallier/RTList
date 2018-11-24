@@ -5,16 +5,17 @@ import { CenteredLayout } from '../CenteredLayout';
 import bg from '../../bg.svg';
 
 const Div = styled('div')`
-  /* background-image: url(${bg}); */
+  background-image: url(${bg}); 
   background-repeat: no-repeat;
   background-size: cover;
+  height: 100vh;
 `;
 
 export class Home extends React.Component {
   public render() {
     return (
       <Div>
-        <CenteredLayout topmargin={'25px'}>
+        <CenteredLayout toppadding={'25px'}>
           <StyledPaper width={'900px'} >
             This is the home page
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla finibus mauris eu orci viverra rutrum. Vivamus id orci quam. Phasellus neque dui, aliquam non est at, facilisis luctus sem. Pellentesque at luctus justo, eget lobortis augue. Etiam ut nibh quis quam blandit auctor. Fusce egestas tortor justo, eu venenatis orci porttitor eu. Fusce quis lacus a nulla pellentesque ullamcorper et posuere erat.
