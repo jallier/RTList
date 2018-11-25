@@ -248,6 +248,7 @@ class WebsocketsServer {
     io.on('connection', (socket) => {
       // When a user connects, send the current state of the list to them
       // sendCurrentDb(socket);
+      logger.debug(`${socket.id} User connected`)
 
       // Now register the socket listeners for the various events
       socket.on('getAll', () => {
@@ -310,7 +311,7 @@ class WebsocketsServer {
       });
 
       socket.on('disconnect', () => {
-        logger.info('User disconnected');
+        logger.debug(`${socket.id} User disconnected`)
       })
     })
   }

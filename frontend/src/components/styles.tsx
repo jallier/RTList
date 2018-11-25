@@ -19,7 +19,7 @@ export const StyledListItemText = styled(ListItemTextS)`
   padding-left: 5px;
   padding-right: 5px;
   text-decoration: ${
-    (props: { strikethrough?: boolean }) => props.strikethrough && 'line-through'
+    (props: { strikethrough?: boolean }) => props.strikethrough ? 'line-through' : undefined
   };
 `;
 
