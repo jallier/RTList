@@ -38,7 +38,7 @@ const hostGiven = !!process.env.REACT_APP_SERVER_HOST;
 const host = process.env.REACT_APP_SERVER_HOST || 'localhost';
 const port = '3001';
 export const server = {
-  baseUrl: (hostGiven ? 'https' : 'http') + '://' + host + (!hostGiven ? port : '')
+  baseUrl: (hostGiven ? 'https' : 'http') + '://' + host + (!hostGiven ? ':' + port : '')
 };
 
 export class List extends React.Component<ListProps, any> {
@@ -96,12 +96,14 @@ export class App extends React.Component<any, AppState> {
   }
 
   public render(): JSX.Element {
-    let links = [{ to: '/', text: 'Home' }, { to: '/list', text: 'List Page' }];
+    let links = [{ to: '/', text: 'Home' } ];
     if (!this.state.auth) {
-      links.push({ to: '/register', text: 'Register' });
+      links.push({ to: '/list', text: 'Login' }, { to: '/register', text: 'Register' });
+    } else {
+      links.push({ to: '/list', text: 'List Page' });
     }
     return (
-      <div className="body">
+      <div className="body" style={{display: 'flex', flexFlow: 'column', height: '100vh'}}>
         <Header
           links={links}
           username={this.state.auth ? this.state.auth.username : undefined}

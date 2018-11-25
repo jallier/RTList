@@ -6,6 +6,7 @@ import TextField, { TextFieldProps } from '@material-ui/core/TextField';
 import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
 import ListItem, { ListItemProps } from '@material-ui/core/ListItem';
 import ListItemText, { ListItemTextProps } from '@material-ui/core/ListItemText';
+import bg from '../bg.svg';
 
 const phoneMQ = '@media (min-width: 320px) and (max-width: 480px)';
 
@@ -53,6 +54,10 @@ const PaperS: SFC<PaperProps> = ({
   ...props
 }) => (<Paper className={className} {...props}>{children}</Paper>);
 
+interface StyledPaperProps {
+  width?: string;
+}
+
 export const StyledPaper = styled(PaperS)`
   display: flex;
   flex-direction: column;
@@ -60,6 +65,7 @@ export const StyledPaper = styled(PaperS)`
   align-items: center;
   padding: 25px;
   width: 470px;
+  ${(props: StyledPaperProps) => 'width: ' + props.width + ';' || '470px;'} 
   ${phoneMQ} {
     width: 100%;
   }
@@ -98,4 +104,11 @@ export const ModalContent = styled('div')`
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+`;
+
+export const BGDiv = styled('div')`
+  background-image: url(${bg}); 
+  background-repeat: no-repeat;
+  background-size: cover;
+  flex: 1 1 auto;
 `;
