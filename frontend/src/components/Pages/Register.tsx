@@ -3,7 +3,7 @@ import Button from '@material-ui/core/Button';
 import { postData } from '../../lib/fetch';
 import { Redirect } from 'react-router';
 import { CenteredLayout } from '../CenteredLayout';
-import { Input, StyledPaper, Form, StyledTextField } from '../styles';
+import { Input, StyledPaper, Form, StyledTextField, BGDiv } from '../styles';
 import { Typography } from '@material-ui/core';
 import { server } from '../App';
 
@@ -75,36 +75,38 @@ export class Register extends React.Component<RegisterProps, RegisterState> {
       return (<Redirect to={this.props.redirectOnSuccess} />);
     } else {
       return (
-        <CenteredLayout toppadding={'25px'}>
-          <StyledPaper elevation={4}>
-            <Typography variant="h4">Sign up for an account</Typography>
-            <br />
-            <Form onSubmit={this.handleInputSubmit}>
-              <StyledTextField
-                name="username"
-                label="Username"
-                variant="outlined"
-                onChange={this.handleUsernameChange}
-              />
-              <StyledTextField
-                name="email"
-                label="Email address"
-                variant="outlined"
-                onChange={this.handleEmailChange}
-              />
-              <StyledTextField
-                name="password"
-                label="Password"
-                variant="outlined"
-                type="password"
-                onChange={this.handlePasswordChange}
-              />
-              <Button type="submit" variant="contained" color="primary">
-                Register
+        <BGDiv>
+          <CenteredLayout toppadding={'25px'}>
+            <StyledPaper elevation={4}>
+              <Typography variant="h4">Sign up for an account</Typography>
+              <br />
+              <Form onSubmit={this.handleInputSubmit}>
+                <StyledTextField
+                  name="username"
+                  label="Username"
+                  variant="outlined"
+                  onChange={this.handleUsernameChange}
+                />
+                <StyledTextField
+                  name="email"
+                  label="Email address"
+                  variant="outlined"
+                  onChange={this.handleEmailChange}
+                />
+                <StyledTextField
+                  name="password"
+                  label="Password"
+                  variant="outlined"
+                  type="password"
+                  onChange={this.handlePasswordChange}
+                />
+                <Button type="submit" variant="contained" color="primary">
+                  Register
               </Button>
-            </Form>
-          </StyledPaper>
-        </CenteredLayout>
+              </Form>
+            </StyledPaper>
+          </CenteredLayout>
+        </BGDiv>
       );
     }
   }

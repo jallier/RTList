@@ -6,6 +6,7 @@ import TextField, { TextFieldProps } from '@material-ui/core/TextField';
 import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
 import ListItem, { ListItemProps } from '@material-ui/core/ListItem';
 import ListItemText, { ListItemTextProps } from '@material-ui/core/ListItemText';
+import bg from '../bg.svg';
 
 const phoneMQ = '@media (min-width: 320px) and (max-width: 480px)';
 
@@ -103,4 +104,11 @@ export const ModalContent = styled('div')`
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+`;
+
+export const BGDiv = styled('div')`
+  background-image: url(${bg}); 
+  background-repeat: no-repeat;
+  background-size: cover;
+  flex: 1 1 auto;
 `;
