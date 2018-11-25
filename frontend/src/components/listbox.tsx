@@ -12,6 +12,7 @@ import TextField from '@material-ui/core/TextField';
 import MenuIcon from '@material-ui/icons/Menu';
 import { SimpleMenu } from './SimpleMenu';
 import styled from 'react-emotion';
+import RefreshIcon from '@material-ui/icons/Refresh';
 
 const StyledList = styled(List)`
   border-top: 1px solid grey;
@@ -62,8 +63,16 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.handleCompletedButtonClick = this.handleCompletedButtonClick.bind(this);
     this.handleCompletedConfirmationButtonClick = this.handleCompletedConfirmationButtonClick.bind(this);
     this.handleModalClose = this.handleModalClose.bind(this);
+    this.handleReconnect = this.handleReconnect.bind(this);
 
     console.log('emitting getAll');
+    this.getAllFromServer();
+  }
+
+  /**
+   * Send a request to the server to fetch all the list items
+   */
+  private getAllFromServer() {
     this.io.emit('getAll');
   }
 
@@ -75,6 +84,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.io.on('addRemoteItem', this.handleRemoteListItemAdded);
     this.io.on('checkedItem', this.handleRemoteListItemStateChange);
     this.io.on('deleteRemoteItem', this.handleRemoteDeleteItem);
+    this.io.on('reconnect', this.handleReconnect);
   }
 
   /**
@@ -85,6 +95,16 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.io.off('addRemoteItem', this.handleRemoteListItemAdded);
     this.io.off('checkedItem', this.handleRemoteListItemStateChange);
     this.io.off('deleteRemoteItem', this.handleRemoteDeleteItem);
+    this.io.off('reconnect', this.handleReconnect);
+  }
+
+  /**
+   * Handle the reconnect to the socket. Send a fresh request for all the list items.
+   * This will trigger a rerender when the new state is sent, updating the view with the data missed while asleep
+   */
+  public handleReconnect() {
+    // this.forceUpdate();
+    this.getAllFromServer();
   }
 
   public handleReceiveInitialState(listItems: ListItemsState[]) {
@@ -282,7 +302,10 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
               <MenuIcon />
             </SimpleMenu>
             List
-            </Typography>
+            <Button onClick={this.handleReconnect}>
+              <RefreshIcon />
+            </Button>
+          </Typography>
         </header>
         <div>
           <InputListItem
