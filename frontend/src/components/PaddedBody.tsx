@@ -8,7 +8,8 @@ interface PaddedBodyProps {
 export class PaddedBody extends React.Component<PaddedBodyProps> {
   private style: React.CSSProperties = {
     padding: '5px',
-    backgroundColor: this.props.backgroundColor || ''
+    backgroundColor: this.props.backgroundColor || '',
+    flex: '0 1 auto'
   };
   public render() {
     return (

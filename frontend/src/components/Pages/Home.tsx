@@ -8,7 +8,7 @@ const Div = styled('div')`
   background-image: url(${bg}); 
   background-repeat: no-repeat;
   background-size: cover;
-  height: 100vh;
+  flex: 1 1 auto
 `;
 
 export class Home extends React.Component {

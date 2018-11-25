@@ -101,7 +101,7 @@ export class App extends React.Component<any, AppState> {
       links.push({ to: '/register', text: 'Register' });
     }
     return (
-      <div className="body">
+      <div className="body" style={{display: 'flex', flexFlow: 'column', height: '100vh'}}>
         <Header
           links={links}
           username={this.state.auth ? this.state.auth.username : undefined}
