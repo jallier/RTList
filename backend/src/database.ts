@@ -75,6 +75,11 @@ export class Database {
     await this.User.sync();
     await this.Item.sync();
 
+    // Insert the admin user
+
+    await this.User.findOrCreate({where: {'username': 'admin'}, defaults: {username: 'admin', email: 'admin@test.com', password: '$2a$10$0n9K6ep6htwbZEKYCckVpOuh6rtjC8hMxZOZj6wHeydAUn2eIRdtW'}});
+    await this.User.sync();
+
     logger.info('DB succesfully initialized');
   }
 
