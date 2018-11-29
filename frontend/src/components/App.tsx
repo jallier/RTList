@@ -13,7 +13,16 @@ import { Error404 } from './Pages/404';
 import { Profile } from './Pages/Profile';
 import { PaddedBody } from './PaddedBody';
 import styled from 'react-emotion';
-// const logo = require('./logo.svg');
+import JssProvider from 'react-jss/lib/JssProvider';
+import { create } from 'jss';
+import { createGenerateClassName, jssPreset } from '@material-ui/core/styles';
+
+const generateClassName = createGenerateClassName();
+const jss = create({
+  ...jssPreset(),
+  // We define a custom insertion point that JSS will look for injecting the styles in the DOM.
+  insertionPoint: document.getElementById('jss-insertion-point') || undefined,
+});
 
 const Body = styled('div')`
   background-color: #EEEEEE;
@@ -103,32 +112,34 @@ export class App extends React.Component<any, AppState> {
       links.push({ to: '/list', text: 'List Page' });
     }
     return (
-      <div className="body" style={{ display: 'flex', flexFlow: 'column', height: '100vh' }}>
-        <Header
-          links={links}
-          username={this.state.auth ? this.state.auth.username : undefined}
-        />
+      <JssProvider jss={jss} generateClassName={generateClassName}>
+        <div className="body" style={{ display: 'flex', flexFlow: 'column', height: '100vh' }}>
+          <Header
+            links={links}
+            username={this.state.auth ? this.state.auth.username : undefined}
+          />
 
-        <Switch>
-          <Route exact={true} path="/" component={Home} />
-          <Route path="/login" render={(props) => <Login {...props} redirectToOnSuccess={'/list'} callback={this.handleLogin} />} />
-          <Route path="/register" render={(props) => <Register {...props} redirectOnSuccess={'/list'} callback={this.handleLogin} />} />
-          <ProtectedRoute
-            isAuthenticated={this.state.auth ? true : false}
-            redirectToPath={'/login'}
-            exact={true}
-            path="/list"
-            render={(props) => <List io={this.io} username={this.state.auth ? this.state.auth.username : ''} userId={this.state.auth ? this.state.auth.userId : 0} />}
-          />
-          <ProtectedRoute
-            isAuthenticated={this.state.auth ? true : false}
-            redirectToPath={'/login'}
-            path="/profile"
-            render={(props) => <Profile handleLogout={this.handleLogout} />}
-          />
-          <Route component={Error404} />
-        </Switch>
-      </div>
+          <Switch>
+            <Route exact={true} path="/" component={Home} />
+            <Route path="/login" render={(props) => <Login {...props} redirectToOnSuccess={'/list'} callback={this.handleLogin} />} />
+            <Route path="/register" render={(props) => <Register {...props} redirectOnSuccess={'/list'} callback={this.handleLogin} />} />
+            <ProtectedRoute
+              isAuthenticated={this.state.auth ? true : false}
+              redirectToPath={'/login'}
+              exact={true}
+              path="/list"
+              render={(props) => <List io={this.io} username={this.state.auth ? this.state.auth.username : ''} userId={this.state.auth ? this.state.auth.userId : 0} />}
+            />
+            <ProtectedRoute
+              isAuthenticated={this.state.auth ? true : false}
+              redirectToPath={'/login'}
+              path="/profile"
+              render={(props) => <Profile handleLogout={this.handleLogout} />}
+            />
+            <Route component={Error404} />
+          </Switch>
+        </div>
+      </JssProvider>
     );
   }
 }
