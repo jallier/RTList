@@ -33,9 +33,6 @@ export const StyledListItem = styled(ListItem)`
   padding-left: 0px;
   padding-right: 0px;
   border-bottom: 1px solid grey;
-  :hover button {
-    display: block;
-  }
 `;
 
 const ListItemCheckboxS: SFC<CheckboxProps> = ({
