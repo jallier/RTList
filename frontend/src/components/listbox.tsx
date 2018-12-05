@@ -13,6 +13,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import { SimpleMenu } from './SimpleMenu';
 import styled from 'react-emotion';
 import RefreshIcon from '@material-ui/icons/Refresh';
+import { Circle } from './Circle';
 
 const StyledList = styled(List)`
   border-top: 1px solid grey;
@@ -305,6 +306,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
             <Button onClick={this.handleReconnect}>
               <RefreshIcon />
             </Button>
+          <Circle radius={10} strokeWidth={3} colour={this.io.connected ? 'green' : 'red'}/>
           </Typography>
         </header>
         <div>
