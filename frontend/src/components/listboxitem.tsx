@@ -27,7 +27,7 @@ const ListItemTextStyle = {
   textDecoration: 'line-through',
 };
 
-const Span = styled('span')`
+const GreySpan = styled('span')`
   color: grey;
 `;
 
@@ -38,7 +38,7 @@ export class ListBoxItem extends React.Component<ListBoxItemProps, ListBoxItemSt
 
     this.handleSubClick = this.handleSubClick.bind(this);
     this.handleDeleteClick = this.handleDeleteClick.bind(this);
-    this.handleItemClick = this.handleItemClick.bind(this);
+    this.handleItemAddedByClick = this.handleItemAddedByClick.bind(this);
   }
 
   // pass this through a method so that the arguments can be passed back up to the parent
@@ -51,29 +51,41 @@ export class ListBoxItem extends React.Component<ListBoxItemProps, ListBoxItemSt
   }
 
   /**
-   * Function to handle when the item itself is clicked, in order to show the delete icon
+   * Function to handle when the added by text is clicked, in order to show the delete icon
+   * 
+   * @param e Event passed by the click handler
+   */
+  private handleItemAddedByClick(e: React.SyntheticEvent<any>) {
+    this.setState({ showDeleteIcon: !this.state.showDeleteIcon });
+  }
+
+  /**
+   * Function to handle when the item text is clicked, in order to edit it
    * 
    * @param e Event passed by the click handler
    */
   private handleItemClick(e: React.SyntheticEvent<any>) {
-    this.setState({ showDeleteIcon: !this.state.showDeleteIcon });
+    console.log('The item text should be edited');
   }
 
   render() {
     return (
-      <StyledListItem onClick={this.handleItemClick}>
+      <StyledListItem>
         <StyledListItemCheckbox checked={!!+this.props.checked} onClick={this.handleSubClick} />
         <StyledListItemText
           strikethrough={!!this.props.checked}
           primary={this.props.text}
+          onClick={this.handleItemClick}
         />
-        <Span>
-          {this.props.addedBy}
-        </Span>
-        {!this.props.checkedBy ? '' : ':'}
-        <Span>
-          {this.props.checkedBy}
-        </Span>
+        <span onClick={this.handleItemAddedByClick}>
+          <GreySpan>
+            {this.props.addedBy}
+          </GreySpan>
+          {!this.props.checkedBy ? '' : ':'}
+          <GreySpan>
+            {this.props.checkedBy}
+          </GreySpan>
+        </span>
         <DeleteButton onClick={this.handleDeleteClick} show={this.state.showDeleteIcon} />
       </StyledListItem>
     );
