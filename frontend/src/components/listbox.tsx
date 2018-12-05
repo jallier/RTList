@@ -13,6 +13,8 @@ import MenuIcon from '@material-ui/icons/Menu';
 import { SimpleMenu } from './SimpleMenu';
 import styled from 'react-emotion';
 import RefreshIcon from '@material-ui/icons/Refresh';
+import { Circle } from './Circle';
+import { Tooltip } from '@material-ui/core';
 
 const StyledList = styled(List)`
   border-top: 1px solid grey;
@@ -64,6 +66,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.handleCompletedConfirmationButtonClick = this.handleCompletedConfirmationButtonClick.bind(this);
     this.handleModalClose = this.handleModalClose.bind(this);
     this.handleReconnect = this.handleReconnect.bind(this);
+    this.handleDisconnect = this.handleDisconnect.bind(this);
 
     console.log('emitting getAll');
     this.getAllFromServer();
@@ -85,6 +88,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.io.on('checkedItem', this.handleRemoteListItemStateChange);
     this.io.on('deleteRemoteItem', this.handleRemoteDeleteItem);
     this.io.on('reconnect', this.handleReconnect);
+    this.io.on('disconnect', this.handleDisconnect);
   }
 
   /**
@@ -96,6 +100,15 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.io.off('checkedItem', this.handleRemoteListItemStateChange);
     this.io.off('deleteRemoteItem', this.handleRemoteDeleteItem);
     this.io.off('reconnect', this.handleReconnect);
+    this.io.off('disconnect', this.handleDisconnect);
+  }
+
+  /**
+   * Handle a disconnect from the server. Force a rerender to display this to the user
+   */
+  public handleDisconnect() {
+    console.error('Socket closed unexpectedly');
+    this.forceUpdate();
   }
 
   /**
@@ -305,6 +318,12 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
             <Button onClick={this.handleReconnect}>
               <RefreshIcon />
             </Button>
+            <Tooltip title="If this is red, refresh the whole page to try reconnect">
+              <span>
+                {/* Need a span here to make the tooltip work */}
+                <Circle radius={10} strokeWidth={3} colour={this.io.connected ? 'green' : 'red'} />
+              </span>
+            </Tooltip>
           </Typography>
         </header>
         <div>
