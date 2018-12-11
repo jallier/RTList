@@ -5,7 +5,7 @@ import * as React from 'react';
 import { DeleteButton } from './deleteButton';
 import styled from 'react-emotion';
 import { StyledListItemCheckbox, StyledListItem, StyledListItemText } from './styles';
-import { ClickAwayListener } from '@material-ui/core';
+import { ClickAwayListener, TextField } from '@material-ui/core';
 
 export interface ListBoxItemProps {
   id: string;
@@ -16,13 +16,15 @@ export interface ListBoxItemProps {
   checkedById?: number;
   archived: boolean;
   position: number;
-  checkedClickHandler: Function;
-  deletedClickHandler: Function;
+  checkedClickHandler: (props: ListBoxItemProps) => void;
+  deletedClickHandler: (id: string) => void;
+  updatedHandler: (props: ListBoxItemProps) => void;
 }
 
 interface ListBoxItemState {
   showDeleteIcon: boolean;
   editable: boolean;
+  currentText: string;
 }
 
 const ListItemTextStyle = {
@@ -34,22 +36,35 @@ const GreySpan = styled('span')`
 `;
 
 export class ListBoxItem extends React.Component<ListBoxItemProps, ListBoxItemState> {
+  private textInput: React.RefObject<HTMLInputElement>;
   constructor(props: ListBoxItemProps) {
     super(props);
-    this.state = { showDeleteIcon: false, editable: false };
+    this.state = { showDeleteIcon: false, editable: false, currentText: this.props.text };
+    this.textInput = React.createRef();
+    console.log(this.textInput);
 
     this.handleSubClick = this.handleSubClick.bind(this);
     this.handleDeleteClick = this.handleDeleteClick.bind(this);
     this.handleItemAddedByClick = this.handleItemAddedByClick.bind(this);
     this.handleItemClick = this.handleItemClick.bind(this);
     this.handleClickAway = this.handleClickAway.bind(this);
+    this.handleTextChange = this.handleTextChange.bind(this);
   }
 
-  // pass this through a method so that the arguments can be passed back up to the parent
+  /**
+   * Function to handle when an item is deleted. This should be passed in through the props so the parent component can handle the global state change
+   * 
+   * @param e Event
+   */
   private handleSubClick() {
     this.props.checkedClickHandler(this.props);
   }
 
+  /**
+   * Function to handle when an item is deleted. This should be passed in through the props so the parent component can handle the global state change
+   * 
+   * @param e Event
+   */
   private handleDeleteClick(e: React.SyntheticEvent<any>) {
     this.props.deletedClickHandler(this.props.id);
   }
@@ -69,18 +84,29 @@ export class ListBoxItem extends React.Component<ListBoxItemProps, ListBoxItemSt
    * @param e Event passed by the click handler
    */
   private handleItemClick(e: React.SyntheticEvent<any>) {
-    console.log('The item text should be edited');
+    console.log('The item should be edited', this.textInput.current);
+    this.textInput.current && this.textInput.current.focus();
     this.setState({ editable: true });
   }
 
   /**
-   * Function to handle when the item is finished being edited
+   * Function to handle when the item is finished being edited. Merge the props with the state, then fire the callback so the parent can take care of the global state
    * 
    * @param e Event passed by the click handler
    */
   private handleClickAway(e: React.SyntheticEvent<any>) {
-    console.log('finished editing');
+    let mergedProps = {...this.props, text: this.state.currentText};
+    this.props.updatedHandler(mergedProps);
     this.setState({ editable: false });
+  }
+
+  /**
+   * Function to handle updating the state when a user types in the editable input field for an item
+   * 
+   * @param e Event that is passed in
+   */
+  private handleTextChange(e: React.SyntheticEvent<any>) {
+    this.setState({ currentText: e.currentTarget.value });
   }
 
   render() {
@@ -88,15 +114,17 @@ export class ListBoxItem extends React.Component<ListBoxItemProps, ListBoxItemSt
       <StyledListItem>
         <StyledListItemCheckbox checked={!!+this.props.checked} onClick={this.handleSubClick} />
         {!this.state.editable ?
+          // Regular mode
           (<StyledListItemText
             strikethrough={!!this.props.checked}
-            primary={this.props.text}
+            primary={this.state.currentText}
             onClick={this.handleItemClick}
           />
           ) :
           (
+            // Edit Mode
             <ClickAwayListener onClickAway={this.handleClickAway}>
-              <input placeholder="editable" />
+              <TextField label="Pls Edit" onChange={this.handleTextChange} inputRef={this.textInput}/>
             </ClickAwayListener>
           )
         }

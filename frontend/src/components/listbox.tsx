@@ -64,6 +64,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.handleCompletedConfirmationButtonClick = this.handleCompletedConfirmationButtonClick.bind(this);
     this.handleModalClose = this.handleModalClose.bind(this);
     this.handleReconnect = this.handleReconnect.bind(this);
+    this.handleUpdateItem = this.handleUpdateItem.bind(this);
 
     console.log('emitting getAll');
     this.getAllFromServer();
@@ -151,17 +152,17 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 
   // This function should invert the current checked state of the item
-  public handleListItemClick(e: ListBoxItemProps) {
-    let checked = !e.checked; // Reverse this as it represents the current state, not the state it was at the time
+  public handleListItemClick(item: ListBoxItemProps) {
+    let checked = !item.checked; // Reverse this as it represents the current state, not the state it was at the time
     let maxPosition = 0;
     if (checked) {
       maxPosition = this.getMaxPosition() + 100;
     }
-    let newListItems = this.getUpdatedListStateItem(e.id, e.text, checked, this.props.username, e.archived, maxPosition);
+    let newListItems = this.getUpdatedListStateItem(item.id, item.text, checked, this.props.username, item.archived, maxPosition);
     this.setState({ listItems: newListItems }, () => {
       // Only emit once the state has been updated. 
       // This could be moved to the start of the function, left here as a reminder
-      this.io.emit('checkedItem', e.id, e.text, checked, this.props.username, this.props.userId);
+      this.io.emit('checkedItem', item.id, item.text, checked, this.props.username, this.props.userId);
     });
   }
 
@@ -221,6 +222,17 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     console.log(id, 'delete button was clicked');
     this.io.emit('deleteItem', id);
     this.handleRemoteDeleteItem(id);
+  }
+
+  /**
+   * Function to send an update to the server when a listitems text is edited
+   * 
+   * @param id id of the item to update
+   * @param text text to update the item to
+   */
+  public handleUpdateItem(item: ListBoxItemProps) {
+    console.log(item.id, 'item was updated to ', item.text);
+    this.io.emit('updateItem', item.id, item.text);
   }
 
   public handleResetButtonClick(e: React.SyntheticEvent<any>) {
@@ -326,6 +338,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
                   checkedBy={item.checkedBy}
                   checkedClickHandler={this.handleListItemClick}
                   deletedClickHandler={this.handleDeleteItemClick}
+                  updatedHandler={this.handleUpdateItem}
                   archived={item.archived}
                   position={item.position}
                 />
@@ -347,6 +360,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
                   checkedBy={item.checkedBy}
                   checkedClickHandler={this.handleListItemClick}
                   deletedClickHandler={this.handleDeleteItemClick}
+                  updatedHandler={this.handleUpdateItem}
                   archived={item.archived}
                   position={0}
                 />
