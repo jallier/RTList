@@ -84,9 +84,12 @@ export class ListBoxItem extends React.Component<ListBoxItemProps, ListBoxItemSt
    * @param e Event passed by the click handler
    */
   private handleItemClick(e: React.SyntheticEvent<any>) {
-    console.log('The item should be edited', this.textInput.current);
-    this.textInput.current && this.textInput.current.focus();
-    this.setState({ editable: true });
+    // Disallow editing if item is archived
+    if (!this.props.archived) {
+      console.log('The item should be edited', this.textInput.current);
+      this.textInput.current && this.textInput.current.focus();
+      this.setState({ editable: true });
+    }
   }
 
   /**
@@ -95,7 +98,7 @@ export class ListBoxItem extends React.Component<ListBoxItemProps, ListBoxItemSt
    * @param e Event passed by the click handler
    */
   private handleClickAway(e: React.SyntheticEvent<any>) {
-    let mergedProps = {...this.props, text: this.state.currentText};
+    let mergedProps = { ...this.props, text: this.state.currentText };
     this.props.updatedHandler(mergedProps);
     this.setState({ editable: false });
   }
@@ -124,7 +127,7 @@ export class ListBoxItem extends React.Component<ListBoxItemProps, ListBoxItemSt
           (
             // Edit Mode
             <ClickAwayListener onClickAway={this.handleClickAway}>
-              <TextField label="Pls Edit" onChange={this.handleTextChange} inputRef={this.textInput}/>
+              <TextField label="Pls Edit" onChange={this.handleTextChange} inputRef={this.textInput} />
             </ClickAwayListener>
           )
         }
