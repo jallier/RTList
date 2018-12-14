@@ -43,6 +43,11 @@ interface ListItemsState {
   position: number;
 }
 
+// Update these as needed
+interface UpdateableListItemsState {
+  text?: string;
+}
+
 export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   private io: SocketIOClient.Socket;
   constructor(props: ListBoxProps) {
@@ -65,6 +70,8 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.handleModalClose = this.handleModalClose.bind(this);
     this.handleReconnect = this.handleReconnect.bind(this);
     this.handleUpdateItem = this.handleUpdateItem.bind(this);
+    this.handleRemoteUpdateItem = this.handleRemoteUpdateItem.bind(this);
+    this.updateItem = this.updateItem.bind(this);
 
     console.log('emitting getAll');
     this.getAllFromServer();
@@ -86,6 +93,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.io.on('checkedItem', this.handleRemoteListItemStateChange);
     this.io.on('deleteRemoteItem', this.handleRemoteDeleteItem);
     this.io.on('reconnect', this.handleReconnect);
+    this.io.on('updateItem', this.handleRemoteUpdateItem);
   }
 
   /**
@@ -97,6 +105,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.io.off('checkedItem', this.handleRemoteListItemStateChange);
     this.io.off('deleteRemoteItem', this.handleRemoteDeleteItem);
     this.io.off('reconnect', this.handleReconnect);
+    this.io.off('updateItem', this.handleRemoteUpdateItem);
   }
 
   /**
@@ -235,6 +244,32 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.io.emit('updateItem', item.id, item.text);
   }
 
+  /**
+   * Apply remote changes to local items
+   * 
+   * @param uuid uuid of the item to update
+   * @param text text the item was updated to
+   */
+  public handleRemoteUpdateItem(uuid: string, text: string) {
+    console.log(uuid, 'was updated to', text);
+    this.updateItem(uuid, { text });
+  }
+
+  /**
+   * Update an item in the listitemsstate
+   * 
+   * @param uuid id of the item to update
+   * @param args args of the item to update
+   */
+  public updateItem(uuid: string, args: UpdateableListItemsState) {
+    let { listItems } = this.state;
+    let index = listItems.findIndex((i) => i.uuid === uuid);
+    let item = listItems[index];
+    let newItem = { ...item, ...args };
+    listItems.splice(index, 1, newItem);
+    this.setState({ listItems });
+  }
+
   public handleResetButtonClick(e: React.SyntheticEvent<any>) {
     // Remove this or make it hidden later
     this.io.emit('resetList');
@@ -333,7 +368,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
                   addedBy={item.addedBy}
                   text={item.text}
                   id={item.uuid}
-                  key={item.uuid}
+                  key={item.uuid + item.text}
                   checked={item.checked}
                   checkedBy={item.checkedBy}
                   checkedClickHandler={this.handleListItemClick}

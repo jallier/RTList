@@ -285,6 +285,25 @@ class WebsocketsServer {
         socket.broadcast.emit('addRemoteItem', username, uuid, text, position);
       });
 
+      /**
+       * Handle when an item's text is updated
+       */
+      socket.on('updateItem', async (uuid: string, text: string) => {
+        logger.debug(uuid, 'was updated to', text);
+
+        // Find the item to be edited
+        let item = await Item.findOne({ where: { uuid } });
+        if (!item) {
+          return;
+        }
+
+        // Update and save it
+        await Item.update({ text }, { where: { uuid } });
+
+        // Broadcast the change to the other clients
+        socket.broadcast.emit('updateItem', uuid, text);
+      })
+
       socket.on('deleteItem', (id: string) => {
         Item.destroy({ where: { uuid: id } });
         logger.debug(id, 'was removed');
