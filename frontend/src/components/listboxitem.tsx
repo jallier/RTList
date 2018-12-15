@@ -5,7 +5,8 @@ import * as React from 'react';
 import { DeleteButton } from './deleteButton';
 import styled from 'react-emotion';
 import { StyledListItemCheckbox, StyledListItem, StyledListItemText } from './styles';
-import { ClickAwayListener, TextField } from '@material-ui/core';
+import { ClickAwayListener, TextField, InputAdornment, IconButton } from '@material-ui/core';
+import { Check } from '@material-ui/icons';
 
 export interface ListBoxItemProps {
   id: string;
@@ -49,6 +50,7 @@ export class ListBoxItem extends React.Component<ListBoxItemProps, ListBoxItemSt
     this.handleItemClick = this.handleItemClick.bind(this);
     this.handleClickAway = this.handleClickAway.bind(this);
     this.handleTextChange = this.handleTextChange.bind(this);
+    this.handleEnterPress = this.handleEnterPress.bind(this);
   }
 
   /**
@@ -112,6 +114,18 @@ export class ListBoxItem extends React.Component<ListBoxItemProps, ListBoxItemSt
     this.setState({ currentText: e.currentTarget.value });
   }
 
+  /**
+   * Function to handle when enter is pressed while editing an item
+   * 
+   * @param e Event passed in 
+   */
+  private handleEnterPress(e: any) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      this.handleClickAway(e);
+    }
+  }
+
   render() {
     return (
       <StyledListItem>
@@ -127,7 +141,22 @@ export class ListBoxItem extends React.Component<ListBoxItemProps, ListBoxItemSt
           (
             // Edit Mode
             <ClickAwayListener onClickAway={this.handleClickAway}>
-              <TextField label="Pls Edit" onChange={this.handleTextChange} inputRef={this.textInput} />
+              <TextField
+                label="Edit this item"
+                onChange={this.handleTextChange}
+                inputRef={this.textInput}
+                style={{ width: '100%' }}
+                onKeyDown={this.handleEnterPress}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton type="submit" onClick={this.handleClickAway}>
+                        <Check />
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
             </ClickAwayListener>
           )
         }
