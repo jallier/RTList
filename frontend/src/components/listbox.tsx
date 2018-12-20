@@ -16,7 +16,7 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 import { Circle } from './Circle';
 import { Tooltip, ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails } from '@material-ui/core';
 import { ExpandMore } from '@material-ui/icons';
-import { groupBy } from 'lodash';
+import { groupBy, map as loMap } from 'lodash';
 import * as moment from 'moment';
 
 const StyledList = styled(List)`
@@ -351,18 +351,24 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     });
   }
 
-  private groupArchived(items: ListItemsState[]) {
+  /**
+   * Group items into subarrays by date
+   * 
+   * @param items Items to group
+   */
+  private groupArchivedByDate(items: ListItemsState[]) {
     let result = groupBy(items, (value: any) => {
       const date = moment(value.updatedAt);
       const weekString = `${date.startOf('week').format('MMM Do')} - ${date.endOf('week').format('MMM Do')}`;
       return weekString;
     });
+    return result;
   }
 
   render() {
     let items = this.splitLists(this.state.listItems);
     this.orderLiveList(items.liveList);
-    this.groupArchived(items.archivedList);
+    let groupedArchivedItems = this.groupArchivedByDate(items.archivedList);
     return (
       <div>
         <header>
@@ -417,6 +423,21 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
             Archived
           </h3>
           {/* TODO: Extract this into its own component */}
+          {loMap(groupedArchivedItems, (itemArr, key) => {
+            return (
+              <ExpansionPanel>
+                <ExpansionPanelSummary expandIcon={<ExpandMore />}>
+                  {key}
+                </ExpansionPanelSummary>
+                {/* TODO: Change this styling so that multiline works. Need to override the display:flex to make it multiline */}
+                <ExpansionPanelDetails>
+                  {itemArr.map(item => (
+                    <div>{item.text}<br/></div>
+                  ))}
+                </ExpansionPanelDetails>
+              </ExpansionPanel>
+            );
+          })}
           <ExpansionPanel >
             <ExpansionPanelSummary expandIcon={<ExpandMore />}>
               This is a panel
