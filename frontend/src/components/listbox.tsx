@@ -14,7 +14,10 @@ import { SimpleMenu } from './SimpleMenu';
 import styled from 'react-emotion';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import { Circle } from './Circle';
-import { Tooltip } from '@material-ui/core';
+import { Tooltip, ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails } from '@material-ui/core';
+import { ExpandMore } from '@material-ui/icons';
+import { groupBy } from 'lodash';
+import * as moment from 'moment';
 
 const StyledList = styled(List)`
   border-top: 1px solid grey;
@@ -316,6 +319,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
 
   /**
    * Split the state list into archived and live list for display purposes
+   * 
    * @param items List of items to split
    */
   private splitLists(items: ListItemsState[]) {
@@ -332,7 +336,8 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 
   /**
-   * Put the list of live items into order based on position value
+   * Put the list of live items into order based on position value. Order the list in-place
+   * 
    * @param items Items to sort
    */
   private orderLiveList(items: ListItemsState[]) {
@@ -346,9 +351,18 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     });
   }
 
+  private groupArchived(items: ListItemsState[]) {
+    let result = groupBy(items, (value: any) => {
+      const date = moment(value.updatedAt);
+      const weekString = `${date.startOf('week').format('MMM Do')} - ${date.endOf('week').format('MMM Do')}`;
+      return weekString;
+    });
+  }
+
   render() {
     let items = this.splitLists(this.state.listItems);
     this.orderLiveList(items.liveList);
+    this.groupArchived(items.archivedList);
     return (
       <div>
         <header>
@@ -402,6 +416,15 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
           <h3>
             Archived
           </h3>
+          {/* TODO: Extract this into its own component */}
+          <ExpansionPanel >
+            <ExpansionPanelSummary expandIcon={<ExpandMore />}>
+              This is a panel
+            </ExpansionPanelSummary>
+            <ExpansionPanelDetails>
+              These are the details
+            </ExpansionPanelDetails>
+          </ExpansionPanel>
           <StyledList>
             {
               items.archivedList.map((item) => (
