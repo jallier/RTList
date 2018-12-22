@@ -14,7 +14,10 @@ import { SimpleMenu } from './SimpleMenu';
 import styled from 'react-emotion';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import { Circle } from './Circle';
-import { Tooltip } from '@material-ui/core';
+import { Tooltip, ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails, Paper } from '@material-ui/core';
+import { ExpandMore } from '@material-ui/icons';
+import { groupBy, map as loMap } from 'lodash';
+import * as moment from 'moment';
 
 const StyledList = styled(List)`
   border-top: 1px solid grey;
@@ -316,6 +319,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
 
   /**
    * Split the state list into archived and live list for display purposes
+   * 
    * @param items List of items to split
    */
   private splitLists(items: ListItemsState[]) {
@@ -332,7 +336,8 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 
   /**
-   * Put the list of live items into order based on position value
+   * Put the list of live items into order based on position value. Order the list in-place
+   * 
    * @param items Items to sort
    */
   private orderLiveList(items: ListItemsState[]) {
@@ -346,9 +351,24 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     });
   }
 
+  /**
+   * Group items into subarrays by date
+   * 
+   * @param items Items to group
+   */
+  private groupArchivedByDate(items: ListItemsState[]) {
+    let result = groupBy(items, (value: any) => {
+      const date = moment(value.updatedAt);
+      const weekString = `${date.startOf('week').format('MMM Do')} - ${date.endOf('week').format('MMM Do')}`;
+      return weekString;
+    });
+    return result;
+  }
+
   render() {
     let items = this.splitLists(this.state.listItems);
     this.orderLiveList(items.liveList);
+    let groupedArchivedItems = this.groupArchivedByDate(items.archivedList);
     return (
       <div>
         <header>
@@ -374,54 +394,58 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
           </Typography>
         </header>
         <div>
-          <InputListItem
-            label="Add Item, press Enter to save"
-            width="100%"
-            handleSubmit={this.handleInputSubmit}
-            handleChange={this.handleInputChange}
-          />
-          <StyledList>
-            {
-              items.liveList.map((item) => (
-                <ListBoxItem
-                  addedBy={item.addedBy}
-                  text={item.text}
-                  id={item.uuid}
-                  key={item.uuid + item.text}
-                  checked={item.checked}
-                  checkedBy={item.checkedBy}
-                  checkedClickHandler={this.handleListItemClick}
-                  deletedClickHandler={this.handleDeleteItemClick}
-                  updatedHandler={this.handleUpdateItem}
-                  archived={item.archived}
-                  position={item.position}
-                />
-              ))
-            }
-          </StyledList>
+          <Paper style={{ padding: '20px' }}>
+            <InputListItem
+              label="Add Item, press Enter to save"
+              width="100%"
+              handleSubmit={this.handleInputSubmit}
+              handleChange={this.handleInputChange}
+            />
+            {items.liveList.map((item) => (
+              <ListBoxItem
+                addedBy={item.addedBy}
+                text={item.text}
+                id={item.uuid}
+                key={item.uuid + item.text}
+                checked={item.checked}
+                checkedBy={item.checkedBy}
+                checkedClickHandler={this.handleListItemClick}
+                deletedClickHandler={this.handleDeleteItemClick}
+                updatedHandler={this.handleUpdateItem}
+                archived={item.archived}
+                position={item.position}
+              />
+            ))}
+          </Paper>
           <h3>
             Archived
           </h3>
-          <StyledList>
-            {
-              items.archivedList.map((item) => (
-                <ListBoxItem
-                  addedBy={item.addedBy}
-                  text={item.text}
-                  id={item.uuid}
-                  key={item.uuid}
-                  checked={item.checked}
-                  checkedBy={item.checkedBy}
-                  checkedClickHandler={this.handleListItemClick}
-                  deletedClickHandler={this.handleDeleteItemClick}
-                  updatedHandler={this.handleUpdateItem}
-                  archived={item.archived}
-                  position={0}
-                />
-              ))
-            }
-          </StyledList>
-
+          {loMap(groupedArchivedItems, (itemArr, key) => {
+            return (
+              <ExpansionPanel>
+                <ExpansionPanelSummary expandIcon={<ExpandMore />}>
+                  {key}
+                </ExpansionPanelSummary>
+                <ExpansionPanelDetails style={{ display: 'block' }}>
+                  {itemArr.map(item => (
+                    <ListBoxItem
+                      addedBy={item.addedBy}
+                      text={item.text}
+                      id={item.uuid}
+                      key={item.uuid}
+                      checked={item.checked}
+                      checkedBy={item.checkedBy}
+                      checkedClickHandler={this.handleListItemClick}
+                      deletedClickHandler={this.handleDeleteItemClick}
+                      updatedHandler={this.handleUpdateItem}
+                      archived={item.archived}
+                      position={0}
+                    />
+                  ))}
+                </ExpansionPanelDetails>
+              </ExpansionPanel>
+            );
+          })}
           {/* Modal code */}
           <Modal open={this.state.modal.confirmArchived} onClose={this.handleModalClose}>
             <div style={{ position: 'absolute', backgroundColor: 'white', boxShadow: '5px', padding: '22px', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
