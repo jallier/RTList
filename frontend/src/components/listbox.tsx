@@ -422,50 +422,32 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
           <h3>
             Archived
           </h3>
-          {/* TODO: Extract this into its own component */}
           {loMap(groupedArchivedItems, (itemArr, key) => {
             return (
               <ExpansionPanel>
                 <ExpansionPanelSummary expandIcon={<ExpandMore />}>
                   {key}
                 </ExpansionPanelSummary>
-                {/* TODO: Change this styling so that multiline works. Need to override the display:flex to make it multiline */}
-                <ExpansionPanelDetails>
+                <ExpansionPanelDetails style={{ display: 'block' }}>
                   {itemArr.map(item => (
-                    <div>{item.text}<br/></div>
+                    <ListBoxItem
+                      addedBy={item.addedBy}
+                      text={item.text}
+                      id={item.uuid}
+                      key={item.uuid}
+                      checked={item.checked}
+                      checkedBy={item.checkedBy}
+                      checkedClickHandler={this.handleListItemClick}
+                      deletedClickHandler={this.handleDeleteItemClick}
+                      updatedHandler={this.handleUpdateItem}
+                      archived={item.archived}
+                      position={0}
+                    />
                   ))}
                 </ExpansionPanelDetails>
               </ExpansionPanel>
             );
           })}
-          <ExpansionPanel >
-            <ExpansionPanelSummary expandIcon={<ExpandMore />}>
-              This is a panel
-            </ExpansionPanelSummary>
-            <ExpansionPanelDetails>
-              These are the details
-            </ExpansionPanelDetails>
-          </ExpansionPanel>
-          <StyledList>
-            {
-              items.archivedList.map((item) => (
-                <ListBoxItem
-                  addedBy={item.addedBy}
-                  text={item.text}
-                  id={item.uuid}
-                  key={item.uuid}
-                  checked={item.checked}
-                  checkedBy={item.checkedBy}
-                  checkedClickHandler={this.handleListItemClick}
-                  deletedClickHandler={this.handleDeleteItemClick}
-                  updatedHandler={this.handleUpdateItem}
-                  archived={item.archived}
-                  position={0}
-                />
-              ))
-            }
-          </StyledList>
-
           {/* Modal code */}
           <Modal open={this.state.modal.confirmArchived} onClose={this.handleModalClose}>
             <div style={{ position: 'absolute', backgroundColor: 'white', boxShadow: '5px', padding: '22px', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
