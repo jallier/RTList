@@ -16,6 +16,7 @@ export class InputListItem extends React.Component<InputListItemProps> {
   private InputListItemTextFieldStyle: React.CSSProperties = {
     width: (this.props.width || '200px'),
     height: (this.props.height || '60px'),
+    marginTop: '0'
   };
 
   public constructor(props: InputListItemProps) {

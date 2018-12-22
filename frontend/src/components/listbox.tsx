@@ -14,7 +14,7 @@ import { SimpleMenu } from './SimpleMenu';
 import styled from 'react-emotion';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import { Circle } from './Circle';
-import { Tooltip, ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails } from '@material-ui/core';
+import { Tooltip, ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails, Paper } from '@material-ui/core';
 import { ExpandMore } from '@material-ui/icons';
 import { groupBy, map as loMap } from 'lodash';
 import * as moment from 'moment';
@@ -394,31 +394,29 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
           </Typography>
         </header>
         <div>
-          <InputListItem
-            label="Add Item, press Enter to save"
-            width="100%"
-            handleSubmit={this.handleInputSubmit}
-            handleChange={this.handleInputChange}
-          />
-          <StyledList>
-            {
-              items.liveList.map((item) => (
-                <ListBoxItem
-                  addedBy={item.addedBy}
-                  text={item.text}
-                  id={item.uuid}
-                  key={item.uuid + item.text}
-                  checked={item.checked}
-                  checkedBy={item.checkedBy}
-                  checkedClickHandler={this.handleListItemClick}
-                  deletedClickHandler={this.handleDeleteItemClick}
-                  updatedHandler={this.handleUpdateItem}
-                  archived={item.archived}
-                  position={item.position}
-                />
-              ))
-            }
-          </StyledList>
+          <Paper style={{ padding: '20px' }}>
+            <InputListItem
+              label="Add Item, press Enter to save"
+              width="100%"
+              handleSubmit={this.handleInputSubmit}
+              handleChange={this.handleInputChange}
+            />
+            {items.liveList.map((item) => (
+              <ListBoxItem
+                addedBy={item.addedBy}
+                text={item.text}
+                id={item.uuid}
+                key={item.uuid + item.text}
+                checked={item.checked}
+                checkedBy={item.checkedBy}
+                checkedClickHandler={this.handleListItemClick}
+                deletedClickHandler={this.handleDeleteItemClick}
+                updatedHandler={this.handleUpdateItem}
+                archived={item.archived}
+                position={item.position}
+              />
+            ))}
+          </Paper>
           <h3>
             Archived
           </h3>
