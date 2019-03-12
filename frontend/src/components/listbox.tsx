@@ -375,7 +375,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
           <Typography variant="h3">
             <SimpleMenu
               menuItems={[
-                { text: 'Reset List', callback: this.handleResetButtonClick },
+                // { text: 'Reset List', callback: this.handleResetButtonClick },
                 { text: 'Send active items to archive', callback: this.handleCompletedConfirmationButtonClick }
               ]}
             >

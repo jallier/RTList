@@ -322,7 +322,7 @@ class WebsocketsServer {
       });
 
       socket.on('completedList', async (userId: string) => {
-        let completedItems = await Item.update({ archived: true, checked: true, checked_by: userId }, { where: { archived: false } });
+        let completedItems = await Item.update({ archived: true, checked: true, checked_by: userId }, { where: { archived: false, checked: true } });
         this.sendCurrentDb(socket, io, sql, true);
         logger.debug('Completed ' + completedItems[0] + ' items: ');
         let user = await User.findOne({ where: { id: userId } });
