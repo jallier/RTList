@@ -1,6 +1,6 @@
-import * as React from 'react';
-import { Input } from '../styles';
-import { Typography, Button } from '@material-ui/core';
+import * as React from "react";
+import { Input } from "../styles";
+import { Typography, Button } from "@material-ui/core";
 
 // Move this to a separate file
 interface ProfileSettingProps {
@@ -34,13 +34,17 @@ export class Profile extends React.Component<ProfileProps> {
       <div>
         <Typography variant="h2">User Settings</Typography>
         <p>
-          <Button color="secondary" variant="outlined" onClick={this.props.handleLogout}>
+          <Button
+            color="secondary"
+            variant="outlined"
+            onClick={this.props.handleLogout}
+          >
             Logout
           </Button>
         </p>
         <p>This page currently has no function. Watch this space</p>
-        <ProfileSetting title={'Change username'} />
-        <ProfileSetting title={'Change email address'} />
+        <ProfileSetting title={"Change username"} />
+        <ProfileSetting title={"Change email address"} />
         <Typography variant="h4">Shared Lists</Typography>
       </div>
     );

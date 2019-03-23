@@ -1,5 +1,5 @@
-import * as React from 'react';
-import Snackbar from '@material-ui/core/Snackbar';
+import * as React from "react";
+import Snackbar from "@material-ui/core/Snackbar";
 
 export interface SnackbarBaseProps {
   show: boolean;
@@ -9,11 +9,10 @@ export interface SnackbarBaseProps {
 }
 
 export class SnackbarBase extends React.Component<SnackbarBaseProps> {
-
   public render() {
     return (
       <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         open={this.props.show}
         autoHideDuration={3000}
         message={<span>{this.props.message}</span>}

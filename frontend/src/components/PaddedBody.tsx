@@ -1,5 +1,5 @@
-import * as React from 'react';
-import * as styled from './styled-components';
+import * as React from "react";
+import * as styled from "./styled-components";
 
 interface PaddedBodyProps {
   backgroundColor?: string;
@@ -7,15 +7,11 @@ interface PaddedBodyProps {
 
 export class PaddedBody extends React.Component<PaddedBodyProps> {
   private style: React.CSSProperties = {
-    padding: '5px',
-    backgroundColor: this.props.backgroundColor || '',
-    flex: '0 1 auto'
+    padding: "5px",
+    backgroundColor: this.props.backgroundColor || "",
+    flex: "0 1 auto"
   };
   public render() {
-    return (
-      <div style={this.style}>
-        {this.props.children}
-      </div>
-    );
+    return <div style={this.style}>{this.props.children}</div>;
   }
 }
