@@ -1,11 +1,11 @@
-import * as React from 'react';
-import Button from '@material-ui/core/Button';
-import { postData } from '../../lib/fetch';
-import { Redirect } from 'react-router';
-import { CenteredLayout } from '../CenteredLayout';
-import { Input, StyledPaper, Form, StyledTextField, BGDiv } from '../styles';
-import { Typography } from '@material-ui/core';
-import { server } from '../App';
+import * as React from "react";
+import Button from "@material-ui/core/Button";
+import { postData } from "../../lib/fetch";
+import { Redirect } from "react-router";
+import { CenteredLayout } from "../CenteredLayout";
+import { Input, StyledPaper, Form, StyledTextField, BGDiv } from "../styles";
+import { Typography } from "@material-ui/core";
+import { server } from "../App";
 
 interface RegisterProps {
   redirectOnSuccess: string;
@@ -24,7 +24,14 @@ interface RegisterState {
 export class Register extends React.Component<RegisterProps, RegisterState> {
   constructor(props: RegisterProps) {
     super(props);
-    this.state = { username: '', email: '', password: '', registerFailure: false, registerFailureReason: '', isRegistered: false };
+    this.state = {
+      username: "",
+      email: "",
+      password: "",
+      registerFailure: false,
+      registerFailureReason: "",
+      isRegistered: false
+    };
 
     this.handleEmailChange = this.handleEmailChange.bind(this);
     this.handlePasswordChange = this.handlePasswordChange.bind(this);
@@ -48,18 +55,26 @@ export class Register extends React.Component<RegisterProps, RegisterState> {
     e.preventDefault();
     // e.currentTarget.reset();
     try {
-      let token = await this.register(this.state.username, this.state.email, this.state.password);
+      let token = await this.register(
+        this.state.username,
+        this.state.email,
+        this.state.password
+      );
       this.props.callback(this.state.username, token);
       this.setState({ isRegistered: true });
     } catch (e) {
-      console.error('Error registering: ', e);
+      console.error("Error registering: ", e);
       this.setState({ registerFailure: true, registerFailureReason: e });
     }
   }
 
   private async register(username: string, email: string, password: string) {
     return new Promise<string>(async (res, rej) => {
-      const responseToken = await postData(`${server.baseUrl}/register`, { username, email, password });
+      const responseToken = await postData(`${server.baseUrl}/register`, {
+        username,
+        email,
+        password
+      });
       let token = await responseToken.json();
       if (token.token) {
         console.log(token.token);
@@ -72,11 +87,11 @@ export class Register extends React.Component<RegisterProps, RegisterState> {
 
   public render() {
     if (this.state.isRegistered) {
-      return (<Redirect to={this.props.redirectOnSuccess} />);
+      return <Redirect to={this.props.redirectOnSuccess} />;
     } else {
       return (
         <BGDiv>
-          <CenteredLayout toppadding={'25px'}>
+          <CenteredLayout toppadding={"25px"}>
             <StyledPaper elevation={4}>
               <Typography variant="h4">Sign up for an account</Typography>
               <br />
@@ -102,7 +117,7 @@ export class Register extends React.Component<RegisterProps, RegisterState> {
                 />
                 <Button type="submit" variant="contained" color="primary">
                   Register
-              </Button>
+                </Button>
               </Form>
             </StyledPaper>
           </CenteredLayout>

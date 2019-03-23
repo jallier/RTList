@@ -1,12 +1,12 @@
-import * as React from 'react';
-import Button from '@material-ui/core/Button';
-import { Redirect } from 'react-router';
-import { SnackbarError } from '../SnackbarError';
-import { postData } from '../../lib/fetch';
-import { CenteredLayout } from '../CenteredLayout';
-import Typography from '@material-ui/core/Typography';
-import { StyledPaper, Form, StyledTextField, BGDiv } from '../styles';
-import { server } from '../App';
+import * as React from "react";
+import Button from "@material-ui/core/Button";
+import { Redirect } from "react-router";
+import { SnackbarError } from "../SnackbarError";
+import { postData } from "../../lib/fetch";
+import { CenteredLayout } from "../CenteredLayout";
+import Typography from "@material-ui/core/Typography";
+import { StyledPaper, Form, StyledTextField, BGDiv } from "../styles";
+import { server } from "../App";
 
 interface LoginProps {
   redirectToOnSuccess: string;
@@ -24,7 +24,13 @@ interface LoginState {
 export class Login extends React.Component<LoginProps, LoginState> {
   public constructor(props: LoginProps) {
     super(props);
-    this.state = { username: '', password: '', isAuth: false, loginFailure: false, loginFailureReason: '' };
+    this.state = {
+      username: "",
+      password: "",
+      isAuth: false,
+      loginFailure: false,
+      loginFailureReason: ""
+    };
 
     this.handleUsernameChange = this.handleUsernameChange.bind(this);
     this.handlePasswordChange = this.handlePasswordChange.bind(this);
@@ -46,15 +52,25 @@ export class Login extends React.Component<LoginProps, LoginState> {
       this.props.callback(this.state.username, token);
       this.setState({ isAuth: true });
     } catch (e) {
-      console.error('Error logging in: ', e);
-      this.setState({ isAuth: false, loginFailure: true, loginFailureReason: e });
+      console.error("Error logging in: ", e);
+      this.setState({
+        isAuth: false,
+        loginFailure: true,
+        loginFailureReason: e
+      });
     }
   }
 
   private async login(username: string, password: string) {
     return new Promise<string>(async (res, rej) => {
-      const responseToken = await postData(`${server.baseUrl}/login`, { username, password });
-      let token: { token: string | undefined, error?: string | undefined } = await responseToken.json();
+      const responseToken = await postData(`${server.baseUrl}/login`, {
+        username,
+        password
+      });
+      let token: {
+        token: string | undefined;
+        error?: string | undefined;
+      } = await responseToken.json();
       if (token.token) {
         console.log(token.token);
         res(token.token);
@@ -68,7 +84,7 @@ export class Login extends React.Component<LoginProps, LoginState> {
     if (!this.state.isAuth) {
       return (
         <BGDiv>
-          <CenteredLayout toppadding={'25px'}>
+          <CenteredLayout toppadding={"25px"}>
             <StyledPaper elevation={4}>
               <Typography variant="h4">Log In</Typography>
               <br />
@@ -88,12 +104,14 @@ export class Login extends React.Component<LoginProps, LoginState> {
                 />
                 <Button type="submit" variant="contained" color="primary">
                   Login
-              </Button>
+                </Button>
               </Form>
               <SnackbarError
                 show={this.state.loginFailure}
-                message={'Failed to login: ' + this.state.loginFailureReason}
-                onClose={(event, reason) => { this.setState({ loginFailure: false }); }}
+                message={"Failed to login: " + this.state.loginFailureReason}
+                onClose={(event, reason) => {
+                  this.setState({ loginFailure: false });
+                }}
               />
             </StyledPaper>
           </CenteredLayout>

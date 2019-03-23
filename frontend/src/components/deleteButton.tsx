@@ -1,14 +1,14 @@
-import * as React from 'react';
-import Icon from '@material-ui/core/Icon';
-import IconButton from '@material-ui/core/IconButton';
-import styled from 'react-emotion';
+import * as React from "react";
+import Icon from "@material-ui/core/Icon";
+import IconButton from "@material-ui/core/IconButton";
+import styled from "react-emotion";
 
 interface StyledIconProps {
   show: boolean;
 }
 
 const StyledIconButton = styled(IconButton)`
-  display: ${(props: StyledIconProps) => props.show ? 'block' : 'none'};
+  display: ${(props: StyledIconProps) => (props.show ? "block" : "none")};
   margin-left: 5px;
 `;
 
@@ -28,7 +28,11 @@ export class DeleteButton extends React.Component<DeleteButtonProps> {
   render() {
     return (
       <div>
-        <StyledIconButton aria-label="delete" onClick={this.props.onClick} show={this.props.show}>
+        <StyledIconButton
+          aria-label="delete"
+          onClick={this.props.onClick}
+          show={this.props.show}
+        >
           <Icon>delete</Icon>
         </StyledIconButton>
       </div>

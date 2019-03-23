@@ -1,8 +1,8 @@
-import * as React from 'react';
-import TextField from '@material-ui/core/TextField';
-import Send from '@material-ui/icons/Send';
-import IconButton from '@material-ui/core/IconButton';
-import { InputAdornment } from '@material-ui/core';
+import * as React from "react";
+import TextField from "@material-ui/core/TextField";
+import Send from "@material-ui/icons/Send";
+import IconButton from "@material-ui/core/IconButton";
+import { InputAdornment } from "@material-ui/core";
 
 interface InputListItemProps {
   label: string;
@@ -14,9 +14,9 @@ interface InputListItemProps {
 
 export class InputListItem extends React.Component<InputListItemProps> {
   private InputListItemTextFieldStyle: React.CSSProperties = {
-    width: (this.props.width || '200px'),
-    height: (this.props.height || '60px'),
-    marginTop: '0'
+    width: this.props.width || "200px",
+    height: this.props.height || "60px",
+    marginTop: "0"
   };
 
   public constructor(props: InputListItemProps) {
@@ -32,10 +32,11 @@ export class InputListItem extends React.Component<InputListItemProps> {
           margin="normal"
           style={this.InputListItemTextFieldStyle}
           onChange={this.props.handleChange}
-          InputProps={{ // Used to render the send icon on the right of the input
+          InputProps={{
+            // Used to render the send icon on the right of the input
             endAdornment: (
               <InputAdornment position="end">
-                <IconButton type={'submit'}>
+                <IconButton type={"submit"}>
                   <Send />
                 </IconButton>
               </InputAdornment>

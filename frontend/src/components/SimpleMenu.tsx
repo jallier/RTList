@@ -1,10 +1,13 @@
-import * as React from 'react';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import Button from '@material-ui/core/Button';
+import * as React from "react";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
+import Button from "@material-ui/core/Button";
 
 interface SimpleMenuProps {
-  menuItems: { text: string, callback: (e: React.SyntheticEvent<HTMLElement>) => void }[];
+  menuItems: {
+    text: string;
+    callback: (e: React.SyntheticEvent<HTMLElement>) => void;
+  }[];
 }
 
 interface SimpleMenuState {
@@ -14,7 +17,10 @@ interface SimpleMenuState {
 /**
  * Class for a simple menu. Takes an element as a child which becomes the button for the menu.
  */
-export class SimpleMenu extends React.Component<SimpleMenuProps, SimpleMenuState> {
+export class SimpleMenu extends React.Component<
+  SimpleMenuProps,
+  SimpleMenuState
+> {
   constructor(props: SimpleMenuProps) {
     super(props);
     this.state = { anchor: null };
@@ -42,17 +48,28 @@ export class SimpleMenu extends React.Component<SimpleMenuProps, SimpleMenuState
   render() {
     return (
       <span>
-        <Button onClick={this.handleClick} style={{ minWidth: 0, paddingLeft: '8px', paddingRight: '8px' }}>
+        <Button
+          onClick={this.handleClick}
+          style={{ minWidth: 0, paddingLeft: "8px", paddingRight: "8px" }}
+        >
           {this.props.children}
         </Button>
-        <Menu open={!!this.state.anchor} onClose={this.handleClose} anchorEl={this.state.anchor}>
-          {
-            this.props.menuItems.map((item, index) => (
-              <MenuItem key={index} onClick={(e: React.SyntheticEvent<any>) => { this.handleClose(e); item.callback(e); }}>
-                {item.text}
-              </MenuItem>
-            ))
-          }
+        <Menu
+          open={!!this.state.anchor}
+          onClose={this.handleClose}
+          anchorEl={this.state.anchor}
+        >
+          {this.props.menuItems.map((item, index) => (
+            <MenuItem
+              key={index}
+              onClick={(e: React.SyntheticEvent<any>) => {
+                this.handleClose(e);
+                item.callback(e);
+              }}
+            >
+              {item.text}
+            </MenuItem>
+          ))}
         </Menu>
       </span>
     );

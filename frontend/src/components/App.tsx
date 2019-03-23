@@ -1,31 +1,31 @@
-import * as React from 'react';
-import '../css/App.css';
-import { ListBox } from './listbox';
-import { Home } from './Pages/Home';
-import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
-import { ProtectedRoute, ProtectedRouteProps } from './PrivateRoute';
-import { Login } from './Pages/Login';
-import { Register } from './Pages/Register';
-import * as jwt from 'jsonwebtoken';
-import * as socket from 'socket.io-client';
-import { Header } from './Header';
-import { Error404 } from './Pages/404';
-import { Profile } from './Pages/Profile';
-import { PaddedBody } from './PaddedBody';
-import styled from 'react-emotion';
-import JssProvider from 'react-jss/lib/JssProvider';
-import { create } from 'jss';
-import { createGenerateClassName, jssPreset } from '@material-ui/core/styles';
+import * as React from "react";
+import "../css/App.css";
+import { ListBox } from "./listbox";
+import { Home } from "./Pages/Home";
+import { BrowserRouter as Router, Route, Link, Switch } from "react-router-dom";
+import { ProtectedRoute, ProtectedRouteProps } from "./PrivateRoute";
+import { Login } from "./Pages/Login";
+import { Register } from "./Pages/Register";
+import * as jwt from "jsonwebtoken";
+import * as socket from "socket.io-client";
+import { Header } from "./Header";
+import { Error404 } from "./Pages/404";
+import { Profile } from "./Pages/Profile";
+import { PaddedBody } from "./PaddedBody";
+import styled from "react-emotion";
+import JssProvider from "react-jss/lib/JssProvider";
+import { create } from "jss";
+import { createGenerateClassName, jssPreset } from "@material-ui/core/styles";
 
 const generateClassName = createGenerateClassName();
 const jss = create({
   ...jssPreset(),
   // We define a custom insertion point that JSS will look for injecting the styles in the DOM.
-  insertionPoint: document.getElementById('jss-insertion-point') || undefined,
+  insertionPoint: document.getElementById("jss-insertion-point") || undefined
 });
 
-const Body = styled('div')`
-  background-color: #EEEEEE;
+const Body = styled("div")`
+  background-color: #eeeeee;
 `;
 
 interface AppState {
@@ -44,10 +44,12 @@ interface ListProps {
 }
 
 const hostGiven = !!process.env.REACT_APP_SERVER_HOST;
-const host = process.env.REACT_APP_SERVER_HOST || 'localhost';
-const port = '3001';
+const host = process.env.REACT_APP_SERVER_HOST || "localhost";
+const port = "3001";
 export const server = {
-  baseUrl: (hostGiven ? 'https' : 'http') + '://' + host + (!hostGiven ? ':' + port : '')
+  baseUrl: `${hostGiven ? "https" : "http"}://${host}${
+    !hostGiven ? `:${port}` : ""
+  }`
 };
 
 export class List extends React.Component<ListProps, any> {
@@ -55,7 +57,11 @@ export class List extends React.Component<ListProps, any> {
     return (
       <PaddedBody>
         <Body>
-          <ListBox io={this.props.io} username={this.props.username} userId={this.props.userId} />
+          <ListBox
+            io={this.props.io}
+            username={this.props.username}
+            userId={this.props.userId}
+          />
         </Body>
       </PaddedBody>
     );
@@ -67,12 +73,19 @@ export class App extends React.Component<any, AppState> {
   constructor(props: any) {
     super(props);
     this.state = {};
-    const token = sessionStorage.getItem('token');
+    const token = sessionStorage.getItem("token");
     if (token) {
       const decodedToken = jwt.decode(token);
-      if (decodedToken && Math.floor(Date.now() / 1000) < decodedToken['exp']) {
+      if (decodedToken && Math.floor(Date.now() / 1000) < decodedToken["exp"]) {
         this.handleConnectToSocket(token);
-        this.state = { auth: { username: decodedToken['username'], userId: decodedToken['id'], expiresAt: decodedToken['exp'], token } };
+        this.state = {
+          auth: {
+            token,
+            username: decodedToken["username"],
+            userId: decodedToken["id"],
+            expiresAt: decodedToken["exp"],
+          }
+        };
       }
     }
 
@@ -81,39 +94,50 @@ export class App extends React.Component<any, AppState> {
   }
 
   private handleConnectToSocket(token: string) {
-    this.io = socket.connect(`${server.baseUrl}`, { secure: true, query: 'auth_token=' + token });
-    this.io.on('disconnectClient', () => { this.setState({ auth: undefined }); });
+    this.io = socket.connect(`${server.baseUrl}`, {
+      secure: true,
+      query: `auth_token=${token}`
+    });
+    this.io.on("disconnectClient", () => {
+      this.setState({ auth: undefined });
+    });
   }
 
   public handleLogin(username: string, token: string) {
-    sessionStorage.setItem('token', token);
+    sessionStorage.setItem("token", token);
     this.handleConnectToSocket(token);
-    let decodedToken = jwt.decode(token);
+    const decodedToken = jwt.decode(token);
     this.setState({
       auth: {
         token,
-        username: decodedToken ? decodedToken['username'] : undefined,
-        userId: decodedToken ? decodedToken['id'] : undefined,
-        expiresAt: decodedToken ? decodedToken['exp'] : undefined
+        username: decodedToken ? decodedToken["username"] : undefined,
+        userId: decodedToken ? decodedToken["id"] : undefined,
+        expiresAt: decodedToken ? decodedToken["exp"] : undefined
       }
     });
   }
 
   public handleLogout() {
-    sessionStorage.removeItem('token');
+    sessionStorage.removeItem("token");
     this.setState({ auth: undefined });
   }
 
   public render(): JSX.Element {
-    let links = [{ to: '/', text: 'Home' }];
+    const links = [{ to: "/", text: "Home" }];
     if (!this.state.auth) {
-      links.push({ to: '/list', text: 'Login' }, { to: '/register', text: 'Register' });
+      links.push(
+        { to: "/list", text: "Login" },
+        { to: "/register", text: "Register" }
+      );
     } else {
-      links.push({ to: '/list', text: 'List Page' });
+      links.push({ to: "/list", text: "List Page" });
     }
     return (
       <JssProvider jss={jss} generateClassName={generateClassName}>
-        <div className="body" style={{ display: 'flex', flexFlow: 'column', height: '100vh' }}>
+        <div
+          className="body"
+          style={{ display: "flex", flexFlow: "column", height: "100vh" }}
+        >
           <Header
             links={links}
             username={this.state.auth ? this.state.auth.username : undefined}
@@ -121,20 +145,44 @@ export class App extends React.Component<any, AppState> {
 
           <Switch>
             <Route exact={true} path="/" component={Home} />
-            <Route path="/login" render={(props) => <Login {...props} redirectToOnSuccess={'/list'} callback={this.handleLogin} />} />
-            <Route path="/register" render={(props) => <Register {...props} redirectOnSuccess={'/list'} callback={this.handleLogin} />} />
-            <ProtectedRoute
-              isAuthenticated={this.state.auth ? true : false}
-              redirectToPath={'/login'}
-              exact={true}
-              path="/list"
-              render={(props) => <List io={this.io} username={this.state.auth ? this.state.auth.username : ''} userId={this.state.auth ? this.state.auth.userId : 0} />}
+            <Route
+              path="/login"
+              render={props => (
+                <Login
+                  {...props}
+                  redirectToOnSuccess={"/list"}
+                  callback={this.handleLogin}
+                />
+              )}
+            />
+            <Route
+              path="/register"
+              render={props => (
+                <Register
+                  {...props}
+                  redirectOnSuccess={"/list"}
+                  callback={this.handleLogin}
+                />
+              )}
             />
             <ProtectedRoute
               isAuthenticated={this.state.auth ? true : false}
-              redirectToPath={'/login'}
+              redirectToPath={"/login"}
+              exact={true}
+              path="/list"
+              render={props => (
+                <List
+                  io={this.io}
+                  username={this.state.auth ? this.state.auth.username : ""}
+                  userId={this.state.auth ? this.state.auth.userId : 0}
+                />
+              )}
+            />
+            <ProtectedRoute
+              isAuthenticated={this.state.auth ? true : false}
+              redirectToPath={"/login"}
               path="/profile"
-              render={(props) => <Profile handleLogout={this.handleLogout} />}
+              render={props => <Profile handleLogout={this.handleLogout} />}
             />
             <Route component={Error404} />
           </Switch>
