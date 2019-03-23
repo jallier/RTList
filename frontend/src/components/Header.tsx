@@ -1,7 +1,8 @@
 import * as React from "react";
 import styled from "react-emotion";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { PaddedBody } from "./PaddedBody";
+import { AppBar, Toolbar } from "@material-ui/core";
 
 type Children = JSX.Element[]; // | JSX.Element | string;
 
@@ -23,6 +24,14 @@ const Nav = styled("nav")`
   align-items: center;
 `;
 
+const LinkStyle: React.CSSProperties = {
+  color: "white",
+  textDecoration: "none",
+  padding: "5px"
+};
+
+const ActiveLinkStyle: React.CSSProperties = { fontWeight: "bold" };
+
 export class Header extends React.Component<HeaderProps> {
   public render() {
     // Render the links properly
@@ -34,18 +43,27 @@ export class Header extends React.Component<HeaderProps> {
         if (i < len - 1) {
           output.push(
             <Li key={i}>
-              <Link to={this.props.links[i].to}>
+              <NavLink
+                to={this.props.links[i].to}
+                style={LinkStyle}
+                activeStyle={ActiveLinkStyle}
+                exact={true}
+              >
                 {this.props.links[i].text}
-              </Link>
-              {"\u00A0"}|
+              </NavLink>
             </Li>
           );
         } else {
           output.push(
             <Li key={i}>
-              <Link to={this.props.links[i].to}>
+              <NavLink
+                to={this.props.links[i].to}
+                style={LinkStyle}
+                activeStyle={ActiveLinkStyle}
+                exact={true}
+              >
                 {this.props.links[i].text}
-              </Link>
+              </NavLink>
             </Li>
           );
         }
@@ -53,18 +71,22 @@ export class Header extends React.Component<HeaderProps> {
       if (this.props.username) {
         output.push(
           <Li key={i++} style={{ marginLeft: "auto" }}>
-            <Link to={"/profile"}>{this.props.username}</Link>
+            <NavLink
+              to={"/profile"}
+              style={LinkStyle}
+              activeStyle={ActiveLinkStyle}
+              exact={true}
+            >
+              {this.props.username}
+            </NavLink>
           </Li>
         );
       }
     }
     return (
-      <PaddedBody backgroundColor="red">
-        <Nav>
-          {output}
-          {this.props.children}
-        </Nav>
-      </PaddedBody>
+      <AppBar position={"relative"}>
+        <Toolbar>{output}</Toolbar>
+      </AppBar>
     );
   }
 }

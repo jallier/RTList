@@ -126,7 +126,7 @@ export class App extends React.Component<any, AppState> {
     const links = [{ to: "/", text: "Home" }];
     if (!this.state.auth) {
       links.push(
-        { to: "/list", text: "Login" },
+        { to: "/login", text: "Login" },
         { to: "/register", text: "Register" }
       );
     } else {
