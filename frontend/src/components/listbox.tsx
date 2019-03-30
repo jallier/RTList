@@ -19,11 +19,15 @@ import {
   ExpansionPanel,
   ExpansionPanelSummary,
   ExpansionPanelDetails,
-  Paper
+  Paper,
+  AppBar,
+  Tabs,
+  Tab
 } from "@material-ui/core";
 import { ExpandMore } from "@material-ui/icons";
 import { groupBy, map as loMap } from "lodash";
 import * as moment from "moment";
+import SwipeableViews from "react-swipeable-views";
 
 const StyledList = styled(List)`
   border-top: 1px solid grey;
@@ -38,7 +42,7 @@ interface ListBoxProps {
 
 interface ListBoxState {
   listItems: ListItemsState[];
-  input: string;
+  tabValue: number;
   modal: {
     confirmArchived: boolean;
   };
@@ -65,7 +69,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     super(props);
     this.state = {
       listItems: [],
-      input: "",
+      tabValue: 0,
       modal: { confirmArchived: false }
     };
     this.io = this.props.io;
@@ -452,12 +456,43 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     return result;
   }
 
+  /**
+   * Handle the tab change. This is an arrow function because this is just proof of concept and will be changing soon
+   */
+  handleTabChange = (event: React.ChangeEvent, value: number) => {
+    this.setState({ tabValue: value });
+  }
+
+  /**
+   * Same deal as the function. Handle change when tabs are swiped
+   */
+  handleSwipeTabChange = (index: number) => {
+    this.setState({ tabValue: index });
+  }
+
   render() {
     let items = this.splitLists(this.state.listItems);
     this.orderLiveList(items.liveList);
     let groupedArchivedItems = this.groupArchivedByDate(items.archivedList);
     return (
       <div>
+        <AppBar position="relative" color="default">
+          <Tabs
+            value={this.state.tabValue}
+            onChange={this.handleTabChange}
+            variant="fullWidth"
+          >
+            <Tab label="List" />
+            <Tab label="Archive" />
+          </Tabs>
+        </AppBar>
+        <SwipeableViews
+          index={this.state.tabValue}
+          onChangeIndex={this.handleSwipeTabChange}
+        >
+          <div>Tab one</div>
+          <div>Tab two</div>
+        </SwipeableViews>
         <header>
           <Typography variant="h3">
             <SimpleMenu
