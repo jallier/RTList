@@ -55,7 +55,6 @@ export class ListBoxItem extends React.Component<
       currentText: this.props.text
     };
     this.textInput = React.createRef();
-    console.log(this.textInput);
 
     this.handleSubClick = this.handleSubClick.bind(this);
     this.handleDeleteClick = this.handleDeleteClick.bind(this);

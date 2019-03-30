@@ -71,7 +71,6 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.io = this.props.io;
 
     this.handleInputSubmit = this.handleInputSubmit.bind(this);
-    this.handleInputChange = this.handleInputChange.bind(this);
     this.handleRemoteListItemAdded = this.handleRemoteListItemAdded.bind(this);
     this.handleListItemClick = this.handleListItemClick.bind(this);
     this.handleRemoteListItemStateChange = this.handleRemoteListItemStateChange.bind(
@@ -177,11 +176,13 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     }));
   }
 
-  public handleInputSubmit(e: React.SyntheticEvent<any>) {
-    e.preventDefault();
-    console.log(this.state.input);
+  /**
+   * Function to be called by the input component when it is submitted. Adds the new item to the array of items in state
+   * @param value new item to be added
+   */
+  public handleInputSubmit(value: string) {
     const uuid = uuidGenerator();
-    this.io.emit("addItem", this.props.username, uuid, this.state.input);
+    this.io.emit("addItem", this.props.username, uuid, value);
     this.setState(prevState => ({
       // TODO: FIX THIS
       listItems: this.state.listItems.concat([
@@ -189,17 +190,12 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
           uuid,
           addedBy: this.props.username,
           checked: false,
-          text: this.state.input,
+          text: value,
           archived: false,
           position: 0
         }
       ])
     }));
-    e.currentTarget.reset();
-  }
-
-  public handleInputChange(e: React.SyntheticEvent<any>) {
-    this.setState({ input: e.currentTarget.value });
   }
 
   /**
@@ -497,7 +493,6 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
               label="Add Item, press Enter to save"
               width="100%"
               handleSubmit={this.handleInputSubmit}
-              handleChange={this.handleInputChange}
             />
             {items.liveList.map(item => (
               <ListBoxItem
