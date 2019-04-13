@@ -31,7 +31,7 @@ import SwipeableViews from "react-swipeable-views";
 import { connect } from "react-redux";
 import { Dispatch } from "redux";
 import { Item } from "../lib/types";
-import { createItem, getAllItems } from "../store/actions";
+import { createItem, getAllItems, updateItem } from "../store/actions";
 
 const StyledList = styled(List)`
   border-top: 1px solid grey;
@@ -44,6 +44,7 @@ interface ListBoxProps {
   io: SocketIOClient.Socket;
   createItem: (item: Item) => void;
   getAllItems: (items: Item[]) => void;
+  updateItem: (item: Item) => void;
 }
 
 interface ListBoxState {
@@ -370,9 +371,10 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
    * @param uuid uuid of the item to update
    * @param text text the item was updated to
    */
-  public handleRemoteUpdateItem(uuid: string, text: string) {
-    console.log(uuid, "was updated to", text);
-    this.updateItem(uuid, { text });
+  public handleRemoteUpdateItem(item: Item) {
+    console.log("updated: ", item);
+    this.props.updateItem(item);
+    this.updateItem(item.uuid, { text: item.text });
   }
 
   /**
@@ -642,6 +644,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
     createItem: (item: Item) => dispatch(createItem(item)),
     getAllItems: (items: Item[]) => dispatch(getAllItems(items)),
+    updateItem: (item: Item) => dispatch(updateItem(item))
   };
 };
 

@@ -7,6 +7,7 @@ import {
   GET_ALL,
   GetAllAction
 } from "./types";
+import { Item } from "../lib/types";
 
 type ItemAction = CreateAction | UpdateAction | GetAllAction;
 
@@ -19,14 +20,33 @@ export function itemReducer(
   state: ItemState = defaultState,
   action: ItemAction
 ) {
+  let liveItems: Item[];
+  let archivedItems: Item[];
   switch (action.type) {
     case CREATE:
       return Object.assign({}, state, {
         liveItems: [...state.liveItems, action.item]
       });
     case GET_ALL:
-      const liveItems = action.items.filter(i => !i.archived);
-      const archivedItems = action.items.filter(i => i.archived);
+      liveItems = action.items.filter(i => !i.archived);
+      archivedItems = action.items.filter(i => i.archived);
+      return Object.assign({}, state, {
+        liveItems,
+        archivedItems
+      });
+    case UPDATE:
+      liveItems = state.liveItems.map(i => {
+        if (i.uuid === action.item.uuid) {
+          return action.item;
+        }
+        return i;
+      });
+      archivedItems = state.archivedItems.map(i => {
+        if (i.uuid === action.item.uuid) {
+          return action.item;
+        }
+        return i;
+      });
       return Object.assign({}, state, {
         liveItems,
         archivedItems

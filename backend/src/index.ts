@@ -288,21 +288,33 @@ class WebsocketsServer {
       /**
        * Handle when an item's text is updated
        */
-      socket.on('updateItem', async (uuid: string, text: string) => {
-        logger.debug(uuid, 'was updated to', text);
+      socket.on("updateItem", async (uuid: string, text: string) => {
 
-        // Find the item to be edited
-        let item = await Item.findOne({ where: { uuid } });
+        let item = await Item.findOne({
+          where: { uuid },
+          include: [
+            { model: User, as: "addedBy" },
+            { model: User, as: "checkedBy" }
+          ]
+        });
         if (!item) {
           return;
         }
 
         // Update and save it
-        await Item.update({ text }, { where: { uuid } });
+        item.text = text;
+        await item.save();
+        item = item.get({ plain: true });
+
+        logger.debug(uuid, "was updated to", text);
+
+        // Extract the fields for the UI
+        item.addedBy = item.addedBy && item.addedBy.username;
+        item.checkedBy = item.checkedBy && item.checkedBy.username;
 
         // Broadcast the change to the other clients
-        socket.broadcast.emit('updateItem', uuid, text);
-      })
+        socket.broadcast.emit("updateItem", item);
+      });
 
       socket.on('deleteItem', (id: string) => {
         Item.destroy({ where: { uuid: id } });
