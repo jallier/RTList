@@ -28,6 +28,10 @@ import { ExpandMore } from "@material-ui/icons";
 import { groupBy, map as loMap } from "lodash";
 import * as moment from "moment";
 import SwipeableViews from "react-swipeable-views";
+import { connect } from "react-redux";
+import { Dispatch } from "redux";
+import { Item } from "../lib/types";
+import { createItem, getAllItems } from "../store/actions";
 
 const StyledList = styled(List)`
   border-top: 1px solid grey;
@@ -38,6 +42,8 @@ interface ListBoxProps {
   username: string;
   userId: number;
   io: SocketIOClient.Socket;
+  createItem: (item: Item) => void;
+  getAllItems: (items: Item[]) => void;
 }
 
 interface ListBoxState {
@@ -153,7 +159,8 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 
   public handleReceiveInitialState(listItems: ListItemsState[]) {
-    console.log("Received all list items from server: ", listItems);
+    console.log("Received all list items from server : ", listItems);
+    this.props.getAllItems(listItems);
     this.setState({ listItems });
   }
 
@@ -165,6 +172,14 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     position: number
   ) {
     console.log(uuid, value, "was added by", username);
+    this.props.createItem({
+      uuid,
+      position,
+      addedBy: username,
+      checked: false,
+      text: value,
+      archived: false
+    });
     this.setState(prevState => ({
       // TODO: FIX THIS
       listItems: this.state.listItems.concat([
@@ -461,14 +476,14 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
    */
   handleTabChange = (event: React.ChangeEvent, value: number) => {
     this.setState({ tabValue: value });
-  }
+  };
 
   /**
    * Same deal as the function. Handle change when tabs are swiped
    */
   handleSwipeTabChange = (index: number) => {
     this.setState({ tabValue: index });
-  }
+  };
 
   render() {
     let items = this.splitLists(this.state.listItems);
@@ -618,3 +633,19 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     );
   }
 }
+
+const mapStateToProps = (state: any) => {
+  return {};
+};
+
+const mapDispatchToProps = (dispatch: Dispatch) => {
+  return {
+    createItem: (item: Item) => dispatch(createItem(item)),
+    getAllItems: (items: Item[]) => dispatch(getAllItems(items)),
+  };
+};
+
+export default connect(
+  undefined,
+  mapDispatchToProps
+)(ListBox);

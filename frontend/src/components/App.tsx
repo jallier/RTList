@@ -1,6 +1,6 @@
 import * as React from "react";
 import "../css/App.css";
-import { ListBox } from "./listbox";
+import ListBox from "./listbox";
 import { Home } from "./Pages/Home";
 import { BrowserRouter as Router, Route, Link, Switch } from "react-router-dom";
 import { ProtectedRoute, ProtectedRouteProps } from "./PrivateRoute";
@@ -83,7 +83,7 @@ export class App extends React.Component<any, AppState> {
             token,
             username: decodedToken["username"],
             userId: decodedToken["id"],
-            expiresAt: decodedToken["exp"],
+            expiresAt: decodedToken["exp"]
           }
         };
       }
