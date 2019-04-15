@@ -43,7 +43,7 @@ interface ListBoxProps {
   userId: number;
   io: SocketIOClient.Socket;
   createItem: (item: Item) => void;
-  getAllItems: (items: Item[]) => void;
+  createAllItems: (items: Item[]) => void;
   updateItem: (item: Item) => void;
 }
 
@@ -161,7 +161,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
 
   public handleReceiveInitialState(listItems: ListItemsState[]) {
     console.log("Received all list items from server : ", listItems);
-    this.props.getAllItems(listItems);
+    this.props.createAllItems(listItems);
     this.setState({ listItems });
   }
 
@@ -323,22 +323,18 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     return newListItems;
   }
 
-  public handleRemoteListItemStateChange(
-    id: string,
-    text: string,
-    checked: boolean,
-    checkedBy: string,
-    archived: boolean,
-    position: number
-  ) {
+  public handleRemoteListItemStateChange(item: Item) {
+    const {id, text, checked, checkedBy, archived, position} = item;
+    // This is now broken. Please check once redux is hooked up
     const newListItems = this.getUpdatedListStateItem(
-      id,
+      id + "",
       text,
       checked,
-      checkedBy,
+      checkedBy || "",
       archived,
       position
     );
+    this.props.updateItem(item);
     this.setState({ listItems: newListItems });
   }
 
@@ -507,7 +503,17 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
           index={this.state.tabValue}
           onChangeIndex={this.handleSwipeTabChange}
         >
-          <div>Tab one</div>
+          <div>
+            Tab one
+            <Button
+              onClick={() => {
+                console.log("test");
+                // this.props.createItem({ uuid: "ay lmao" });
+              }}
+            >
+              Test
+            </Button>
+          </div>
           <div>Tab two</div>
         </SwipeableViews>
         <header>
@@ -643,7 +649,7 @@ const mapStateToProps = (state: any) => {
 const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
     createItem: (item: Item) => dispatch(createItem(item)),
-    getAllItems: (items: Item[]) => dispatch(getAllItems(items)),
+    createAllItems: (items: Item[]) => dispatch(getAllItems(items)),
     updateItem: (item: Item) => dispatch(updateItem(item))
   };
 };

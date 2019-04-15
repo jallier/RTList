@@ -6,7 +6,7 @@ import * as jwt from 'jsonwebtoken';
 import * as bodyparser from 'body-parser';
 import * as jwtAuth from 'socketio-jwt-auth';
 import { logger } from './logger';
-import { Database, DBModel, UserInstance } from './database';
+import { Database, DBModel, UserInstance, ItemInstance } from './database';
 import { getNewMaxPosition, normalizeItemPositions } from './lib/database-functions';
 import * as bcrypt from 'bcryptjs';
 
@@ -244,6 +244,20 @@ class WebsocketsServer {
     logger.info('Sent all items to ' + (!broadcast ? 'single client' : 'all clients'));
   }
 
+  /**
+   * Find an item by its uuid
+   * @param uuid The uuid of the item to find
+   */
+  private async findItem(uuid: string): Promise<any>{ // Fix the typing for this at some point
+    return await this.Item.findOne({
+          where: { uuid },
+          include: [
+            { model: this.User, as: "addedBy" },
+            { model: this.User, as: "checkedBy" }
+          ]
+        });
+  }
+
   private registerSocketRoutes(io: SocketIO.Server, sql: sequelize.Sequelize, User: sequelize.Model<any, any>, Item: sequelize.Model<any, any>) {
     io.on('connection', (socket) => {
       // When a user connects, send the current state of the list to them
@@ -259,20 +273,41 @@ class WebsocketsServer {
         logger.debug(uuid, { text, checked, checkedBy }, 'was clicked');
         // get the id of the user that checked the item
         let newPosition = 0;
+        let item = await this.findItem(uuid);
+        if(!item){
+          return;
+        }
         try {
           if (checked) {
             newPosition = await getNewMaxPosition(Item);
-            await Item.update({ text, checked, checked_by: checkedById, archived: false, position: newPosition }, { where: { uuid } });
+            await item.update({
+              text,
+              checked,
+              checked_by: checkedById,
+              archived: false,
+              position: newPosition
+            });
           } else {
-            // Item unchecked
             // This may cause issues later where there is already a 0th item.
-            await Item.update({ text, checked, checked_by: checkedById, archived: false, position: newPosition }, { where: { uuid } });
+            await item.update({
+              text,
+              checked,
+              checked_by: checkedById,
+              archived: false,
+              position: newPosition
+            });
             normalizeItemPositions(Item);
           }
         } catch (e) {
           logger.error(e);
         }
-        socket.broadcast.emit('checkedItem', uuid, text, checked, checkedBy, false, newPosition);
+        // Extract the fields for the UI. This should be a function lol
+        item = item.get({plain: true});
+        item.addedBy = item.addedBy && item.addedBy.username;
+        item.checkedBy = item.checkedBy && item.checkedBy.username;
+
+        logger.debug('the item that was updated is: ', item);
+        socket.broadcast.emit('checkedItem', item);
       });
 
       socket.on('addItem', async (username: string, uuid: string, text: string) => {
@@ -290,13 +325,7 @@ class WebsocketsServer {
        */
       socket.on("updateItem", async (uuid: string, text: string) => {
 
-        let item = await Item.findOne({
-          where: { uuid },
-          include: [
-            { model: User, as: "addedBy" },
-            { model: User, as: "checkedBy" }
-          ]
-        });
+        let item = await this.findItem(uuid);
         if (!item) {
           return;
         }
