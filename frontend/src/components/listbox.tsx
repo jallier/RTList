@@ -4,11 +4,8 @@ import List from "@material-ui/core/List";
 import Button from "@material-ui/core/Button";
 import { ListBoxItem, ListBoxItemProps } from "./listboxitem";
 import { InputListItem } from "./InputListItem";
-import { Socket } from "socket.io-client";
 import Modal from "@material-ui/core/Modal";
-import { ModalContent } from "./styles";
 import Typography from "@material-ui/core/Typography";
-import TextField from "@material-ui/core/TextField";
 import MenuIcon from "@material-ui/icons/Menu";
 import { SimpleMenu } from "./SimpleMenu";
 import styled from "react-emotion";
@@ -36,7 +33,8 @@ import {
   getAllItems,
   updateItem,
   deleteItem
-} from "../store/actions";
+} from "../store/items/actions";
+import { AppState } from "../store";
 
 const StyledList = styled(List)`
   border-top: 1px solid grey;
@@ -47,6 +45,8 @@ interface ListBoxProps {
   username: string;
   userId: number;
   io: SocketIOClient.Socket;
+  liveItems: Item[];
+  archivedItems: Item[];
   createItem: (item: Item) => void;
   createAllItems: (items: Item[]) => void;
   updateItem: (item: Item) => void;
@@ -54,7 +54,6 @@ interface ListBoxProps {
 }
 
 interface ListBoxState {
-  listItems: ListItemsState[];
   tabValue: number;
   modal: {
     confirmArchived: boolean;
@@ -71,17 +70,11 @@ interface ListItemsState {
   position: number;
 }
 
-// Update these as needed
-interface UpdateableListItemsState {
-  text?: string;
-}
-
 export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   private io: SocketIOClient.Socket;
   constructor(props: ListBoxProps) {
     super(props);
     this.state = {
-      listItems: [],
       tabValue: 0,
       modal: { confirmArchived: false }
     };
@@ -108,7 +101,6 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.handleReconnect = this.handleReconnect.bind(this);
     this.handleUpdateItem = this.handleUpdateItem.bind(this);
     this.handleRemoteUpdateItem = this.handleRemoteUpdateItem.bind(this);
-    this.updateItem = this.updateItem.bind(this);
     this.handleDisconnect = this.handleDisconnect.bind(this);
 
     console.log("emitting getAll");
@@ -168,7 +160,6 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   public handleReceiveInitialState(listItems: ListItemsState[]) {
     console.log("Received all list items from server : ", listItems);
     this.props.createAllItems(listItems);
-    this.setState({ listItems });
   }
 
   // TODO: make me match the other function below
@@ -183,19 +174,6 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
       checked: false,
       archived: false
     });
-    this.setState(prevState => ({
-      // TODO: FIX THIS
-      listItems: this.state.listItems.concat([
-        {
-          uuid,
-          position,
-          addedBy,
-          text,
-          checked: false,
-          archived: false
-        }
-      ])
-    }));
   }
 
   /**
@@ -213,27 +191,14 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
       text: value,
       uuid
     });
-    this.setState(prevState => ({
-      // TODO: FIX THIS
-      listItems: this.state.listItems.concat([
-        {
-          uuid,
-          addedBy: this.props.username,
-          checked: false,
-          text: value,
-          archived: false,
-          position: 0
-        }
-      ])
-    }));
   }
 
   /**
    * Get the highest position value from the current listItems stored in state
    */
-  private getMaxPosition() {
+  private getMaxPosition(items: Item[]) {
     let max = 0;
-    for (const item of this.state.listItems) {
+    for (const item of items) {
       if (item.position > max) {
         max = item.position;
       }
@@ -246,16 +211,8 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     const checked = !item.checked; // Reverse this as it represents the current state, not the state it was at the time
     let maxPosition = 0;
     if (checked) {
-      maxPosition = this.getMaxPosition() + 100;
+      maxPosition = this.getMaxPosition(this.props.liveItems) + 100;
     }
-    const newListItems = this.getUpdatedListStateItem(
-      item.id,
-      item.text,
-      checked,
-      this.props.username,
-      item.archived,
-      maxPosition
-    );
     this.props.updateItem({
       uuid: item.id,
       addedBy: item.addedBy,
@@ -265,103 +222,24 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
       position: maxPosition,
       text: item.text
     });
-    this.setState({ listItems: newListItems }, () => {
-      // Only emit once the state has been updated.
-      // This could be moved to the start of the function, left here as a reminder
-      this.io.emit(
-        "checkedItem",
-        item.id,
-        item.text,
-        checked,
-        this.props.username,
-        this.props.userId
-      );
-    });
-  }
-
-  // TODO: Rework these two functions to just modify/remove the items in place instead of making a new array
-  /**
-   * This function will check the items in the state and update the matching item based on the uuid
-   * @param uuid ID to match item in state against
-   * @param text Text of the item
-   * @param checked If the item should be checked or not
-   * @param checkedBy The username of the user who checked the item
-   * @param archived If the item has been archived
-   */
-  public getUpdatedListStateItem(
-    uuid: string,
-    text: string,
-    checked: boolean,
-    checkedBy: string,
-    archived: boolean,
-    position: number
-  ) {
-    console.log("Item changed", uuid, text, checked);
-    const newListItems: ListItemsState[] = [];
-    for (const item of this.state.listItems) {
-      let newText = item.text;
-      let newChecked = item.checked;
-      let newCheckedBy = item.checkedBy;
-      let newArchived = item.archived;
-      let newPosition = item.position;
-      if (item.uuid === uuid) {
-        newText = text;
-        newChecked = checked;
-        newCheckedBy = checkedBy || this.props.username;
-        newArchived = false;
-        newPosition = position;
-        console.log(uuid, "was matched");
-      }
-      newListItems.push({
-        addedBy: item.addedBy || this.props.username,
-        uuid: item.uuid,
-        text: newText,
-        checked: newChecked,
-        checkedBy: newCheckedBy,
-        archived: newArchived,
-        position: newPosition
-      });
-    }
-    return newListItems;
-  }
-
-  public getRemovedListStateItem(uuid: string) {
-    const newListItems: ListItemsState[] = [];
-    for (const item of this.state.listItems) {
-      if (uuid !== item.uuid) {
-        newListItems.push({
-          addedBy: this.props.username,
-          uuid: item.uuid,
-          text: item.text,
-          checked: item.checked,
-          archived: item.archived,
-          position: item.position
-        });
-      }
-    }
-    return newListItems;
+    this.io.emit(
+      "checkedItem",
+      item.id,
+      item.text,
+      checked,
+      this.props.username,
+      this.props.userId
+    );
   }
 
   public handleRemoteListItemStateChange(item: Item) {
     const { id, text, checked, checkedBy, archived, position } = item;
-    // This is now broken. Please check once redux is hooked up
-    const newListItems = this.getUpdatedListStateItem(
-      id + "",
-      text,
-      checked,
-      checkedBy || "",
-      archived,
-      position
-    );
     this.props.updateItem(item);
-    this.setState({ listItems: newListItems });
   }
 
   public handleRemoteDeleteItem(uuid: string) {
     console.log(uuid, "deleting id");
-    const newListItems = this.getRemovedListStateItem(uuid);
     this.props.deleteItem(uuid);
-    this.setState({ listItems: newListItems });
   }
 
   public handleDeleteItemClick(id: string) {
@@ -398,22 +276,6 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   public handleRemoteUpdateItem(item: Item) {
     console.log("updated: ", item);
     this.props.updateItem(item);
-    this.updateItem(item.uuid, { text: item.text });
-  }
-
-  /**
-   * Update an item in the listitemsstate
-   *
-   * @param uuid id of the item to update
-   * @param args args of the item to update
-   */
-  public updateItem(uuid: string, args: UpdateableListItemsState) {
-    const { listItems } = this.state;
-    const index = listItems.findIndex(i => i.uuid === uuid);
-    const item = listItems[index];
-    const newItem = { ...item, ...args };
-    listItems.splice(index, 1, newItem);
-    this.setState({ listItems });
   }
 
   public handleResetButtonClick(e: React.SyntheticEvent<any>) {
@@ -448,30 +310,13 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 
   /**
-   * Split the state list into archived and live list for display purposes
-   *
-   * @param items List of items to split
-   */
-  private splitLists(items: ListItemsState[]) {
-    const archivedList: ListItemsState[] = [];
-    const liveList: ListItemsState[] = [];
-    for (const item of items) {
-      if (item.archived) {
-        archivedList.push(item);
-      } else {
-        liveList.push(item);
-      }
-    }
-    return { archivedList, liveList };
-  }
-
-  /**
    * Put the list of live items into order based on position value. Order the list in-place
    *
    * @param items Items to sort
    */
   private orderLiveList(items: ListItemsState[]) {
-    items.sort((a, b) => {
+    const newItems = items.slice();
+    newItems.sort((a, b) => {
       if (a.position > b.position) {
         return 1;
       } else if (a.position < b.position) {
@@ -479,6 +324,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
       }
       return 0;
     });
+    return newItems;
   }
 
   /**
@@ -512,9 +358,10 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   };
 
   render() {
-    let items = this.splitLists(this.state.listItems);
-    this.orderLiveList(items.liveList);
-    let groupedArchivedItems = this.groupArchivedByDate(items.archivedList);
+    const items = this.orderLiveList(this.props.liveItems);
+    const groupedArchivedItems = this.groupArchivedByDate(
+      this.props.archivedItems
+    );
     return (
       <div>
         <AppBar position="relative" color="default">
@@ -580,7 +427,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
               width="100%"
               handleSubmit={this.handleInputSubmit}
             />
-            {items.liveList.map(item => (
+            {items.map(item => (
               <ListBoxItem
                 addedBy={item.addedBy}
                 text={item.text}
@@ -670,8 +517,12 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 }
 
-const mapStateToProps = (state: any) => {
-  return {};
+const mapStateToProps = (state: AppState) => {
+  const { liveItems, archivedItems } = state.items;
+  return {
+    liveItems,
+    archivedItems
+  };
 };
 
 const mapDispatchToProps = (dispatch: Dispatch) => {
@@ -684,6 +535,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
 };
 
 export default connect(
-  undefined,
+  mapStateToProps,
   mapDispatchToProps
 )(ListBox);

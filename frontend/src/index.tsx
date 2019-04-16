@@ -5,13 +5,11 @@ import { App } from "./components/App";
 import registerServiceWorker from "./registerServiceWorker";
 import "./css/index.css";
 import { createStore, combineReducers } from "redux";
-import { itemReducer } from "./store/reducers";
 import { Provider } from "react-redux";
-
-const appReducers = combineReducers({ itemReducer });
+import { rootReducer } from "./store";
 
 const store = createStore(
-  appReducers,
+  rootReducer,
   (window as any).__REDUX_DEVTOOLS_EXTENSION__ && (window as any).__REDUX_DEVTOOLS_EXTENSION__()
 );
 

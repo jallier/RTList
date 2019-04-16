@@ -1,4 +1,3 @@
-import { Item } from "../lib/types";
 import {
   CreateAction,
   CREATE,
@@ -9,6 +8,7 @@ import {
   DeleteAction,
   DELETE
 } from "./types";
+import { Item } from "../../lib/types";
 
 export function createItem(value: Item): CreateAction {
   return { type: CREATE, item: value };

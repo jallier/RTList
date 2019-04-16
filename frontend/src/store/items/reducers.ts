@@ -9,7 +9,7 @@ import {
   DeleteAction,
   DELETE
 } from "./types";
-import { Item } from "../lib/types";
+import { Item } from "../../lib/types";
 
 type ItemAction = CreateAction | UpdateAction | GetAllAction | DeleteAction;
 
