@@ -5,11 +5,13 @@ import {
   UPDATE,
   CREATE,
   GET_ALL,
-  GetAllAction
+  GetAllAction,
+  DeleteAction,
+  DELETE
 } from "./types";
 import { Item } from "../lib/types";
 
-type ItemAction = CreateAction | UpdateAction | GetAllAction;
+type ItemAction = CreateAction | UpdateAction | GetAllAction | DeleteAction;
 
 const defaultState: ItemState = {
   archivedItems: [],
@@ -47,6 +49,13 @@ export function itemReducer(
         }
         return i;
       });
+      return Object.assign({}, state, {
+        liveItems,
+        archivedItems
+      });
+    case DELETE:
+      liveItems = state.liveItems.filter(i => i.uuid !== action.itemUuid);
+      archivedItems = state.archivedItems.filter(i => i.uuid !== action.itemUuid);
       return Object.assign({}, state, {
         liveItems,
         archivedItems

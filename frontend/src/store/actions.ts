@@ -5,7 +5,9 @@ import {
   GetAllAction,
   GET_ALL,
   UpdateAction,
-  UPDATE
+  UPDATE,
+  DeleteAction,
+  DELETE
 } from "./types";
 
 export function createItem(value: Item): CreateAction {
@@ -18,4 +20,8 @@ export function getAllItems(value: Item[]): GetAllAction {
 
 export function updateItem(value: Item): UpdateAction {
   return { type: UPDATE, item: value };
+}
+
+export function deleteItem(value: string): DeleteAction {
+  return { type: DELETE, itemUuid: value };
 }

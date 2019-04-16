@@ -31,7 +31,7 @@ import SwipeableViews from "react-swipeable-views";
 import { connect } from "react-redux";
 import { Dispatch } from "redux";
 import { Item } from "../lib/types";
-import { createItem, getAllItems, updateItem } from "../store/actions";
+import { createItem, getAllItems, updateItem, deleteItem } from "../store/actions";
 
 const StyledList = styled(List)`
   border-top: 1px solid grey;
@@ -45,6 +45,7 @@ interface ListBoxProps {
   createItem: (item: Item) => void;
   createAllItems: (items: Item[]) => void;
   updateItem: (item: Item) => void;
+  deleteItem: (itemUuid: string) => void;
 }
 
 interface ListBoxState {
@@ -338,9 +339,10 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     this.setState({ listItems: newListItems });
   }
 
-  public handleRemoteDeleteItem(id: string) {
-    console.log(id, "deleting id");
-    const newListItems = this.getRemovedListStateItem(id);
+  public handleRemoteDeleteItem(uuid: string) {
+    console.log(uuid, "deleting id");
+    const newListItems = this.getRemovedListStateItem(uuid);
+    this.props.deleteItem(uuid);
     this.setState({ listItems: newListItems });
   }
 
@@ -650,7 +652,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
     createItem: (item: Item) => dispatch(createItem(item)),
     createAllItems: (items: Item[]) => dispatch(getAllItems(items)),
-    updateItem: (item: Item) => dispatch(updateItem(item))
+    updateItem: (item: Item) => dispatch(updateItem(item)),
+    deleteItem: (itemUuid: string) => dispatch(deleteItem(itemUuid))
   };
 };
 

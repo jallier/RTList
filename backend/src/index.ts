@@ -269,6 +269,9 @@ class WebsocketsServer {
         this.sendCurrentDb(socket, io, sql);
       });
 
+      /**
+       * Handle when an item is checked
+       */
       socket.on('checkedItem', async (uuid: string, text: string, checked: boolean, checkedBy: string, checkedById: number) => {
         logger.debug(uuid, { text, checked, checkedBy }, 'was clicked');
         // get the id of the user that checked the item
@@ -345,10 +348,13 @@ class WebsocketsServer {
         socket.broadcast.emit("updateItem", item);
       });
 
-      socket.on('deleteItem', (id: string) => {
-        Item.destroy({ where: { uuid: id } });
-        logger.debug(id, 'was removed');
-        socket.broadcast.emit('deleteRemoteItem', id);
+      /**
+       * Handle deleting an item
+       */
+      socket.on("deleteItem", (uuid: string) => {
+        Item.destroy({ where: { uuid: uuid } });
+        logger.debug(uuid, "was removed");
+        socket.broadcast.emit("deleteRemoteItem", uuid);
       });
 
       socket.on('resetList', async () => {
