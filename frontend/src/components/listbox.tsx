@@ -205,6 +205,14 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   public handleInputSubmit(value: string) {
     const uuid = uuidGenerator();
     this.io.emit("addItem", this.props.username, uuid, value);
+    this.props.createItem({
+      addedBy: this.props.username,
+      archived: false,
+      checked: false,
+      position: 0,
+      text: value,
+      uuid
+    });
     this.setState(prevState => ({
       // TODO: FIX THIS
       listItems: this.state.listItems.concat([
@@ -248,6 +256,15 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
       item.archived,
       maxPosition
     );
+    this.props.updateItem({
+      uuid: item.id,
+      addedBy: item.addedBy,
+      archived: item.archived,
+      checked,
+      checkedBy: this.props.username,
+      position: maxPosition,
+      text: item.text
+    });
     this.setState({ listItems: newListItems }, () => {
       // Only emit once the state has been updated.
       // This could be moved to the start of the function, left here as a reminder
@@ -361,6 +378,14 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
    */
   public handleUpdateItem(item: ListBoxItemProps) {
     console.log(item.id, "item was updated to ", item.text);
+    this.props.updateItem({
+      addedBy: item.addedBy,
+      archived: item.archived,
+      checked: item.checked,
+      position: item.position,
+      text: item.text,
+      uuid: item.id
+    });
     this.io.emit("updateItem", item.id, item.text);
   }
 
