@@ -307,20 +307,25 @@ class WebsocketsServer {
         // Extract the fields for the UI. This should be a function lol
         item = item.get({plain: true});
         item.addedBy = item.addedBy && item.addedBy.username;
-        item.checkedBy = item.checkedBy && item.checkedBy.username;
+        item.checkedBy = checkedBy;
 
         logger.debug('the item that was updated is: ', item);
         socket.broadcast.emit('checkedItem', item);
       });
 
+      /**
+       * Handle adding a new item
+       */
       socket.on('addItem', async (username: string, uuid: string, text: string) => {
         logger.debug(uuid, text, 'was added by', username);
         // Not great to do a lookup for every insert.
         let user = await User.findOne({ where: { username } }) as UserInstance;
         let position = 0;
-        Item.create({ added_by: user.id, uuid, text, checked: false, position });
+        let item = await Item.create({ added_by: user.id, uuid, text, checked: false, position });
         normalizeItemPositions(Item); // This is gonna be a source of inefficiencies - there should be a better way to do this
-        socket.broadcast.emit('addRemoteItem', username, uuid, text, position);
+        item = item.get({plain: true});
+        item.addedBy = user.username;
+        socket.broadcast.emit('addRemoteItem', item);
       });
 
       /**

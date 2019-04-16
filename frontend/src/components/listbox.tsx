@@ -31,7 +31,12 @@ import SwipeableViews from "react-swipeable-views";
 import { connect } from "react-redux";
 import { Dispatch } from "redux";
 import { Item } from "../lib/types";
-import { createItem, getAllItems, updateItem, deleteItem } from "../store/actions";
+import {
+  createItem,
+  getAllItems,
+  updateItem,
+  deleteItem
+} from "../store/actions";
 
 const StyledList = styled(List)`
   border-top: 1px solid grey;
@@ -167,19 +172,15 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 
   // TODO: make me match the other function below
-  public handleRemoteListItemAdded(
-    username: string,
-    uuid: string,
-    value: string,
-    position: number
-  ) {
-    console.log(uuid, value, "was added by", username);
+  public handleRemoteListItemAdded(item: Item) {
+    const { uuid, text, addedBy, position } = item;
+    console.log(uuid, text, "was added by", addedBy);
     this.props.createItem({
       uuid,
       position,
-      addedBy: username,
+      addedBy,
+      text,
       checked: false,
-      text: value,
       archived: false
     });
     this.setState(prevState => ({
@@ -188,9 +189,9 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
         {
           uuid,
           position,
-          addedBy: username,
+          addedBy,
+          text,
           checked: false,
-          text: value,
           archived: false
         }
       ])
@@ -325,7 +326,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 
   public handleRemoteListItemStateChange(item: Item) {
-    const {id, text, checked, checkedBy, archived, position} = item;
+    const { id, text, checked, checkedBy, archived, position } = item;
     // This is now broken. Please check once redux is hooked up
     const newListItems = this.getUpdatedListStateItem(
       id + "",
