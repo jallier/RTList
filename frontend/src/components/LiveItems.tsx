@@ -1,6 +1,5 @@
 import * as React from "react";
 import * as uuidGenerator from "uuid/v1";
-import List from "@material-ui/core/List";
 import Button from "@material-ui/core/Button";
 import { ListBoxItem, ListBoxItemProps } from "./listboxitem";
 import { InputListItem } from "./InputListItem";
@@ -8,53 +7,26 @@ import Modal from "@material-ui/core/Modal";
 import Typography from "@material-ui/core/Typography";
 import MenuIcon from "@material-ui/icons/Menu";
 import { SimpleMenu } from "./SimpleMenu";
-import styled from "react-emotion";
 import RefreshIcon from "@material-ui/icons/Refresh";
 import { Circle } from "./Circle";
-import {
-  Tooltip,
-  ExpansionPanel,
-  ExpansionPanelSummary,
-  ExpansionPanelDetails,
-  Paper,
-  AppBar,
-  Tabs,
-  Tab
-} from "@material-ui/core";
-import { ExpandMore } from "@material-ui/icons";
-import { groupBy, map as loMap } from "lodash";
-import * as moment from "moment";
-import SwipeableViews from "react-swipeable-views";
+import { Tooltip, Paper, AppBar, Tabs, Tab } from "@material-ui/core";
 import { connect } from "react-redux";
 import { Dispatch } from "redux";
 import { Item } from "../lib/types";
-import {
-  createItem,
-  getAllItems,
-  updateItem,
-  deleteItem
-} from "../store/items/actions";
+import { createItem, updateItem, deleteItem } from "../store/items/actions";
 import { AppState } from "../store";
-
-const StyledList = styled(List)`
-  border-top: 1px solid grey;
-  padding-top: 0px;
-`;
 
 interface ListBoxProps {
   username: string;
   userId: number;
   io: SocketIOClient.Socket;
   liveItems: Item[];
-  archivedItems: Item[];
   createItem: (item: Item) => void;
-  createAllItems: (items: Item[]) => void;
   updateItem: (item: Item) => void;
   deleteItem: (itemUuid: string) => void;
 }
 
 interface ListBoxState {
-  tabValue: number;
   modal: {
     confirmArchived: boolean;
   };
@@ -70,110 +42,29 @@ interface ListItemsState {
   position: number;
 }
 
-export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
+export class LiveItems extends React.Component<ListBoxProps, ListBoxState> {
   private io: SocketIOClient.Socket;
   constructor(props: ListBoxProps) {
     super(props);
     this.state = {
-      tabValue: 0,
       modal: { confirmArchived: false }
     };
     this.io = this.props.io;
 
     this.handleInputSubmit = this.handleInputSubmit.bind(this);
-    this.handleRemoteListItemAdded = this.handleRemoteListItemAdded.bind(this);
     this.handleListItemClick = this.handleListItemClick.bind(this);
-    this.handleRemoteListItemStateChange = this.handleRemoteListItemStateChange.bind(
-      this
-    );
-    this.handleReceiveInitialState = this.handleReceiveInitialState.bind(this);
     this.handleDeleteItemClick = this.handleDeleteItemClick.bind(this);
-    this.handleRemoteDeleteItem = this.handleRemoteDeleteItem.bind(this);
     this.handleShowLogsClick = this.handleShowLogsClick.bind(this);
     this.handleResetButtonClick = this.handleResetButtonClick.bind(this);
+    this.handleModalClose = this.handleModalClose.bind(this);
+    this.handleReconnect = this.handleReconnect.bind(this);
+    this.handleUpdateItem = this.handleUpdateItem.bind(this);
     this.handleCompletedButtonClick = this.handleCompletedButtonClick.bind(
       this
     );
     this.handleCompletedConfirmationButtonClick = this.handleCompletedConfirmationButtonClick.bind(
       this
     );
-    this.handleModalClose = this.handleModalClose.bind(this);
-    this.handleReconnect = this.handleReconnect.bind(this);
-    this.handleUpdateItem = this.handleUpdateItem.bind(this);
-    this.handleRemoteUpdateItem = this.handleRemoteUpdateItem.bind(this);
-    this.handleDisconnect = this.handleDisconnect.bind(this);
-
-    console.log("emitting getAll");
-    this.getAllFromServer();
-  }
-
-  /**
-   * Send a request to the server to fetch all the list items
-   */
-  private getAllFromServer() {
-    this.io.emit("getAll");
-  }
-
-  /**
-   * Register the socket listeners here
-   */
-  public componentDidMount() {
-    this.io.on("receivedInitialState", this.handleReceiveInitialState);
-    this.io.on("addRemoteItem", this.handleRemoteListItemAdded);
-    this.io.on("checkedItem", this.handleRemoteListItemStateChange);
-    this.io.on("deleteRemoteItem", this.handleRemoteDeleteItem);
-    this.io.on("reconnect", this.handleReconnect);
-    this.io.on("updateItem", this.handleRemoteUpdateItem);
-    this.io.on("disconnect", this.handleDisconnect);
-  }
-
-  /**
-   * Unregister the socket listeners here to prevent things being updated twice on remount
-   */
-  public componentWillUnmount() {
-    this.io.off("receivedInitialState", this.handleReceiveInitialState);
-    this.io.off("addRemoteItem", this.handleRemoteListItemAdded);
-    this.io.off("checkedItem", this.handleRemoteListItemStateChange);
-    this.io.off("deleteRemoteItem", this.handleRemoteDeleteItem);
-    this.io.off("reconnect", this.handleReconnect);
-    this.io.off("updateItem", this.handleRemoteUpdateItem);
-    this.io.off("disconnect", this.handleDisconnect);
-  }
-
-  /**
-   * Handle a disconnect from the server. Force a rerender to display this to the user
-   */
-  public handleDisconnect() {
-    console.error("Socket closed unexpectedly");
-    this.forceUpdate();
-  }
-
-  /**
-   * Handle the reconnect to the socket. Send a fresh request for all the list items.
-   * This will trigger a rerender when the new state is sent, updating the view with the data missed while asleep
-   */
-  public handleReconnect() {
-    // this.forceUpdate();
-    this.getAllFromServer();
-  }
-
-  public handleReceiveInitialState(listItems: ListItemsState[]) {
-    console.log("Received all list items from server : ", listItems);
-    this.props.createAllItems(listItems);
-  }
-
-  // TODO: make me match the other function below
-  public handleRemoteListItemAdded(item: Item) {
-    const { uuid, text, addedBy, position } = item;
-    console.log(uuid, text, "was added by", addedBy);
-    this.props.createItem({
-      uuid,
-      position,
-      addedBy,
-      text,
-      checked: false,
-      archived: false
-    });
   }
 
   /**
@@ -206,7 +97,10 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     return max;
   }
 
-  // This function should invert the current checked state of the item
+  /**
+   * Handle when an item in the list is clicked. Update the state and emit a socket event
+   * @param item The item that was clicked
+   */
   public handleListItemClick(item: ListBoxItemProps) {
     const checked = !item.checked; // Reverse this as it represents the current state, not the state it was at the time
     let maxPosition = 0;
@@ -232,20 +126,14 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     );
   }
 
-  public handleRemoteListItemStateChange(item: Item) {
-    const { id, text, checked, checkedBy, archived, position } = item;
-    this.props.updateItem(item);
-  }
-
-  public handleRemoteDeleteItem(uuid: string) {
-    console.log(uuid, "deleting id");
+  /**
+   * Handle when the delete button is clicked on an item
+   * @param uuid uuid of the item to delete
+   */
+  public handleDeleteItemClick(uuid: string) {
+    console.log(uuid, "delete button was clicked");
+    this.io.emit("deleteItem", uuid);
     this.props.deleteItem(uuid);
-  }
-
-  public handleDeleteItemClick(id: string) {
-    console.log(id, "delete button was clicked");
-    this.io.emit("deleteItem", id);
-    this.handleRemoteDeleteItem(id);
   }
 
   /**
@@ -268,14 +156,18 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
   }
 
   /**
-   * Apply remote changes to local items
-   *
-   * @param uuid uuid of the item to update
-   * @param text text the item was updated to
+   * Handle the reconnect to the socket. Send a fresh request for all the list items.
+   * This will trigger a rerender when the new state is sent, updating the view with the data missed while asleep
    */
-  public handleRemoteUpdateItem(item: Item) {
-    console.log("updated: ", item);
-    this.props.updateItem(item);
+  public handleReconnect() {
+    this.getAllFromServer();
+  }
+
+  /**
+   * Send a request to the server to fetch all the list items
+   */
+  private getAllFromServer() {
+    this.props.io.emit("getAll");
   }
 
   public handleResetButtonClick(e: React.SyntheticEvent<any>) {
@@ -327,70 +219,10 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
     return newItems;
   }
 
-  /**
-   * Group items into subarrays by date
-   *
-   * @param items Items to group
-   */
-  private groupArchivedByDate(items: ListItemsState[]) {
-    let result = groupBy(items, (value: any) => {
-      const date = moment(value.updatedAt);
-      const weekString = `${date
-        .startOf("week")
-        .format("MMM Do")} - ${date.endOf("week").format("MMM Do")}`;
-      return weekString;
-    });
-    return result;
-  }
-
-  /**
-   * Handle the tab change. This is an arrow function because this is just proof of concept and will be changing soon
-   */
-  handleTabChange = (event: React.ChangeEvent, value: number) => {
-    this.setState({ tabValue: value });
-  };
-
-  /**
-   * Same deal as the function. Handle change when tabs are swiped
-   */
-  handleSwipeTabChange = (index: number) => {
-    this.setState({ tabValue: index });
-  };
-
   render() {
     const items = this.orderLiveList(this.props.liveItems);
-    const groupedArchivedItems = this.groupArchivedByDate(
-      this.props.archivedItems
-    );
     return (
-      <div>
-        <AppBar position="relative" color="default">
-          <Tabs
-            value={this.state.tabValue}
-            onChange={this.handleTabChange}
-            variant="fullWidth"
-          >
-            <Tab label="List" />
-            <Tab label="Archive" />
-          </Tabs>
-        </AppBar>
-        <SwipeableViews
-          index={this.state.tabValue}
-          onChangeIndex={this.handleSwipeTabChange}
-        >
-          <div>
-            Tab one
-            <Button
-              onClick={() => {
-                console.log("test");
-                // this.props.createItem({ uuid: "ay lmao" });
-              }}
-            >
-              Test
-            </Button>
-          </div>
-          <div>Tab two</div>
-        </SwipeableViews>
+      <React.Fragment>
         <header>
           <Typography variant="h3">
             <SimpleMenu
@@ -443,33 +275,7 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
               />
             ))}
           </Paper>
-          <h3>Archived</h3>
-          {loMap(groupedArchivedItems, (itemArr, key) => {
-            return (
-              <ExpansionPanel>
-                <ExpansionPanelSummary expandIcon={<ExpandMore />}>
-                  {key}
-                </ExpansionPanelSummary>
-                <ExpansionPanelDetails style={{ display: "block" }}>
-                  {itemArr.map(item => (
-                    <ListBoxItem
-                      addedBy={item.addedBy}
-                      text={item.text}
-                      id={item.uuid}
-                      key={item.uuid}
-                      checked={item.checked}
-                      checkedBy={item.checkedBy}
-                      checkedClickHandler={this.handleListItemClick}
-                      deletedClickHandler={this.handleDeleteItemClick}
-                      updatedHandler={this.handleUpdateItem}
-                      archived={item.archived}
-                      position={0}
-                    />
-                  ))}
-                </ExpansionPanelDetails>
-              </ExpansionPanel>
-            );
-          })}
+
           {/* Modal code */}
           <Modal
             open={this.state.modal.confirmArchived}
@@ -512,23 +318,21 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
             </div>
           </Modal>
         </div>
-      </div>
+      </React.Fragment>
     );
   }
 }
 
 const mapStateToProps = (state: AppState) => {
-  const { liveItems, archivedItems } = state.items;
+  const { liveItems } = state.items;
   return {
-    liveItems,
-    archivedItems
+    liveItems
   };
 };
 
 const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
     createItem: (item: Item) => dispatch(createItem(item)),
-    createAllItems: (items: Item[]) => dispatch(getAllItems(items)),
     updateItem: (item: Item) => dispatch(updateItem(item)),
     deleteItem: (itemUuid: string) => dispatch(deleteItem(itemUuid))
   };
@@ -537,4 +341,4 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(ListBox);
+)(LiveItems);

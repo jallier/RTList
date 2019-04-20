@@ -1,6 +1,5 @@
 import * as React from "react";
 import "../css/App.css";
-import ListBox from "./listbox";
 import { Home } from "./Pages/Home";
 import { BrowserRouter as Router, Route, Link, Switch } from "react-router-dom";
 import { ProtectedRoute, ProtectedRouteProps } from "./PrivateRoute";
@@ -16,6 +15,8 @@ import styled from "react-emotion";
 import JssProvider from "react-jss/lib/JssProvider";
 import { create } from "jss";
 import { createGenerateClassName, jssPreset } from "@material-ui/core/styles";
+import EventListener from "./EventListener";
+// import { List } from "./List";
 
 const generateClassName = createGenerateClassName();
 const jss = create({
@@ -23,11 +24,6 @@ const jss = create({
   // We define a custom insertion point that JSS will look for injecting the styles in the DOM.
   insertionPoint: document.getElementById("jss-insertion-point") || undefined
 });
-
-const Body = styled("div")`
-  background-color: #eeeeee;
-`;
-
 interface AppState {
   auth?: {
     username: string;
@@ -35,12 +31,6 @@ interface AppState {
     token: string;
     expiresAt: string;
   };
-}
-
-interface ListProps {
-  io: SocketIOClient.Socket;
-  username: string;
-  userId: number;
 }
 
 const hostGiven = !!process.env.REACT_APP_SERVER_HOST;
@@ -51,22 +41,6 @@ export const server = {
     !hostGiven ? `:${port}` : ""
   }`
 };
-
-export class List extends React.Component<ListProps, any> {
-  public render() {
-    return (
-      <PaddedBody>
-        <Body>
-          <ListBox
-            io={this.props.io}
-            username={this.props.username}
-            userId={this.props.userId}
-          />
-        </Body>
-      </PaddedBody>
-    );
-  }
-}
 
 export class App extends React.Component<any, AppState> {
   private io: SocketIOClient.Socket;
@@ -171,7 +145,7 @@ export class App extends React.Component<any, AppState> {
               exact={true}
               path="/list"
               render={props => (
-                <List
+                <EventListener
                   io={this.io}
                   username={this.state.auth ? this.state.auth.username : ""}
                   userId={this.state.auth ? this.state.auth.userId : 0}
