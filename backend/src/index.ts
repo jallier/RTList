@@ -6,7 +6,7 @@ import * as jwt from 'jsonwebtoken';
 import * as bodyparser from 'body-parser';
 import * as jwtAuth from 'socketio-jwt-auth';
 import { logger } from './logger';
-import { Database, DBModel, UserInstance } from './database';
+import { Database, DBModel, UserInstance, ItemInstance } from './database';
 import { getNewMaxPosition, normalizeItemPositions } from './lib/database-functions';
 import * as bcrypt from 'bcryptjs';
 
@@ -244,6 +244,20 @@ class WebsocketsServer {
     logger.info('Sent all items to ' + (!broadcast ? 'single client' : 'all clients'));
   }
 
+  /**
+   * Find an item by its uuid
+   * @param uuid The uuid of the item to find
+   */
+  private async findItem(uuid: string): Promise<any>{ // Fix the typing for this at some point
+    return await this.Item.findOne({
+          where: { uuid },
+          include: [
+            { model: this.User, as: "addedBy" },
+            { model: this.User, as: "checkedBy" }
+          ]
+        });
+  }
+
   private registerSocketRoutes(io: SocketIO.Server, sql: sequelize.Sequelize, User: sequelize.Model<any, any>, Item: sequelize.Model<any, any>) {
     io.on('connection', (socket) => {
       // When a user connects, send the current state of the list to them
@@ -255,59 +269,97 @@ class WebsocketsServer {
         this.sendCurrentDb(socket, io, sql);
       });
 
+      /**
+       * Handle when an item is checked
+       */
       socket.on('checkedItem', async (uuid: string, text: string, checked: boolean, checkedBy: string, checkedById: number) => {
         logger.debug(uuid, { text, checked, checkedBy }, 'was clicked');
         // get the id of the user that checked the item
         let newPosition = 0;
+        let item = await this.findItem(uuid);
+        if(!item){
+          return;
+        }
         try {
           if (checked) {
             newPosition = await getNewMaxPosition(Item);
-            await Item.update({ text, checked, checked_by: checkedById, archived: false, position: newPosition }, { where: { uuid } });
+            await item.update({
+              text,
+              checked,
+              checked_by: checkedById,
+              archived: false,
+              position: newPosition
+            });
           } else {
-            // Item unchecked
             // This may cause issues later where there is already a 0th item.
-            await Item.update({ text, checked, checked_by: checkedById, archived: false, position: newPosition }, { where: { uuid } });
+            await item.update({
+              text,
+              checked,
+              checked_by: checkedById,
+              archived: false,
+              position: newPosition
+            });
             normalizeItemPositions(Item);
           }
         } catch (e) {
           logger.error(e);
         }
-        socket.broadcast.emit('checkedItem', uuid, text, checked, checkedBy, false, newPosition);
+        // Extract the fields for the UI. This should be a function lol
+        item = item.get({plain: true});
+        item.addedBy = item.addedBy && item.addedBy.username;
+        item.checkedBy = checkedBy;
+
+        logger.debug('the item that was updated is: ', item);
+        socket.broadcast.emit('checkedItem', item);
       });
 
+      /**
+       * Handle adding a new item
+       */
       socket.on('addItem', async (username: string, uuid: string, text: string) => {
         logger.debug(uuid, text, 'was added by', username);
         // Not great to do a lookup for every insert.
         let user = await User.findOne({ where: { username } }) as UserInstance;
         let position = 0;
-        Item.create({ added_by: user.id, uuid, text, checked: false, position });
+        let item = await Item.create({ added_by: user.id, uuid, text, checked: false, position });
         normalizeItemPositions(Item); // This is gonna be a source of inefficiencies - there should be a better way to do this
-        socket.broadcast.emit('addRemoteItem', username, uuid, text, position);
+        item = item.get({plain: true});
+        item.addedBy = user.username;
+        socket.broadcast.emit('addRemoteItem', item);
       });
 
       /**
        * Handle when an item's text is updated
        */
-      socket.on('updateItem', async (uuid: string, text: string) => {
-        logger.debug(uuid, 'was updated to', text);
+      socket.on("updateItem", async (uuid: string, text: string) => {
 
-        // Find the item to be edited
-        let item = await Item.findOne({ where: { uuid } });
+        let item = await this.findItem(uuid);
         if (!item) {
           return;
         }
 
         // Update and save it
-        await Item.update({ text }, { where: { uuid } });
+        item.text = text;
+        await item.save();
+        item = item.get({ plain: true });
+
+        logger.debug(uuid, "was updated to", text);
+
+        // Extract the fields for the UI
+        item.addedBy = item.addedBy && item.addedBy.username;
+        item.checkedBy = item.checkedBy && item.checkedBy.username;
 
         // Broadcast the change to the other clients
-        socket.broadcast.emit('updateItem', uuid, text);
-      })
+        socket.broadcast.emit("updateItem", item);
+      });
 
-      socket.on('deleteItem', (id: string) => {
-        Item.destroy({ where: { uuid: id } });
-        logger.debug(id, 'was removed');
-        socket.broadcast.emit('deleteRemoteItem', id);
+      /**
+       * Handle deleting an item
+       */
+      socket.on("deleteItem", (uuid: string) => {
+        Item.destroy({ where: { uuid: uuid } });
+        logger.debug(uuid, "was removed");
+        socket.broadcast.emit("deleteRemoteItem", uuid);
       });
 
       socket.on('resetList', async () => {

@@ -69,8 +69,14 @@ export class Database {
     await this.Item.sync();
 
     // Set up foreign key associations
-    this.User.hasMany(this.Item, { foreignKey: 'added_by' });
-    this.User.hasMany(this.Item, { foreignKey: 'checked_by' });
+    this.User.hasMany(this.Item, { foreignKey: 'added_by', sourceKey:'id'});
+    this.User.hasMany(this.Item, { foreignKey: 'checked_by', sourceKey: 'id' });
+
+    await this.User.sync();
+    await this.Item.sync();
+
+    this.Item.belongsTo(this.User, {foreignKey: 'added_by', targetKey: 'id', as: 'addedBy'});
+    this.Item.belongsTo(this.User, {foreignKey: 'checked_by', targetKey: 'id', as: 'checkedBy'});
 
     await this.User.sync();
     await this.Item.sync();
