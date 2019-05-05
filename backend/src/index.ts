@@ -10,11 +10,6 @@ import { Database, DBModel, UserInstance, ItemInstance } from './database';
 import { getNewMaxPosition, normalizeItemPositions } from './lib/database-functions';
 import * as bcrypt from 'bcryptjs';
 
-interface IListItem {
-  text: string;
-  checked: boolean;
-}
-
 class Server {
   private db: Database;
   private Item: DBModel // Hax, but it works
@@ -30,6 +25,9 @@ class Server {
     this.db = new Database();
   }
 
+  /**
+   * Set up the http and websocket servers, then start them running
+   */
   public async run() {
     await this.db.run();
     this.User = this.db.getUserModel();
@@ -40,16 +38,27 @@ class Server {
     this.WebServer.listen();
   }
 
+  /**
+   * Set up the http server, and start it
+   * @param User User model
+   * @param Item Item model
+   */
   private async initializeHTTPServer(User: DBModel, Item: DBModel) {
     this.WebServer = new WebServer(User, Item, this.jwtSecret, this.jwtExpiresIn);
     this.HTTPServer = await this.WebServer.run();
   }
 
+  /**
+   * Set up the websockets instance 
+   */
   private initializeWebsockets() {
     this.WebsocketsServer = new WebsocketsServer(this.HTTPServer, this.jwtSecret, this.jwtExpiresIn, this.db.getSequelizeObject(), this.User, this.Item).run();
   }
 }
 
+/**
+ * A class to represent the http server
+ */
 class WebServer {
   private readonly app: express.Express;
   private readonly server: http.Server;
@@ -67,6 +76,9 @@ class WebServer {
     this.jwtExpiresIn = jwtExpiresIn;
   }
 
+  /**
+   * Set up the routes and middleware, then return an instance to the http server
+   */
   public async run() {
     this.configureMiddleware(this.app);
     this.configureRoutes(this.app);
@@ -74,6 +86,9 @@ class WebServer {
     return this.getServer();
   }
 
+  /**
+   * Start the app listening
+   */
   public listen() {
     this.server.listen(3001, '0.0.0.0', () => {
       logger.info('listening from the callback');
@@ -81,6 +96,10 @@ class WebServer {
     logger.info('Listening on port 3001')
   }
 
+  /**
+   * Add the middleware for the app
+   * @param app The express object
+   */
   private configureMiddleware(app: express.Express) {
     app.use(bodyparser.json()); // support json encoded bodies
     app.use(bodyparser.urlencoded({ extended: true })); // support encoded bodies
@@ -91,6 +110,10 @@ class WebServer {
     });
   }
 
+  /**
+   * Set up the routes for the app. This is only used for login and register as these are the only routes called before the socket connection is made
+   * @param app the Express app
+   */
   private configureRoutes(app: express.Express) {
     app.get('/', (req, res) => {
       // res.sendFile(__dirname + '/index.html');
@@ -98,6 +121,9 @@ class WebServer {
       logger.debug('sending response to client');
     });
 
+    /**
+     * Handle the login route
+     */
     app.post('/login', async (req, res) => {
       logger.debug(req.body.username, req.body.password);
       let username: string = req.body.username;
@@ -125,6 +151,9 @@ class WebServer {
       res.send(JSON.stringify({ 'token': token }));
     });
 
+    /**
+     * Handle the register route
+     */
     app.post('/register', async (req, res) => {
       res.setHeader('Content-Type', 'application/json');
       const username = req.body.username;
@@ -161,6 +190,10 @@ class WebServer {
     });
   }
 
+  /**
+   * Return a hash of the password with a salt
+   * @param password the password to hash
+   */
   private async getPasswordHash(password: string) {
     const saltRounds = 10;
     const salt = await bcrypt.genSalt(saltRounds);
@@ -168,11 +201,17 @@ class WebServer {
     return hash;
   }
 
+  /**
+   * Return an instance of the http server
+   */
   private getServer() {
     return this.server;
   }
 }
 
+/**
+ * This class represents the socket.io connection, and associated socket routes
+ */
 class WebsocketsServer {
   private readonly httpServer: http.Server;
   private readonly jwtSecret: string;
@@ -191,6 +230,9 @@ class WebsocketsServer {
     this.Item = Item;
   }
 
+  /**
+   * Set up the socket.io server with middleware and register the socket routes
+   */
   public run() {
     this.io = socketio(this.httpServer);
     this.configureMiddleware(this.io);
@@ -199,6 +241,10 @@ class WebsocketsServer {
     return this.io;
   }
 
+  /**
+   * Set up the jwt middleware for the socket connection
+   * @param io The socket object
+   */
   private configureMiddleware(io: SocketIO.Server) {
     io.use(jwtAuth.authenticate({ secret: this.jwtSecret }, (payload, done) => {
       return done(null, payload.username, 'passing token back');
@@ -216,11 +262,15 @@ class WebsocketsServer {
     })
   }
 
+  /**
+   * Register a timeout for a token to send a disconnect event when the token expires. This should then log the client out
+   * @param socket Socket object
+   * @param token the jwt to verify
+   */
   private registerSocketExpiry(socket: SocketIO.Socket, token: string) {
-    let timeout;
     let decodedToken = jwt.verify(token, this.jwtSecret) as { username: string; exp: number; token: string }; // cast this bitch
     if (decodedToken) {
-      timeout = setTimeout(() => {
+      setTimeout(() => {
         logger.info('disconnecting the socket');
         socket.emit('disconnectClient', 'token expired');
         socket.disconnect();
@@ -228,6 +278,13 @@ class WebsocketsServer {
     }
   }
 
+  /**
+   * Send the current db, either to a single client or to all connected clients
+   * @param socket The socket object
+   * @param io The socket.io server. Used to emit to all connected clients
+   * @param sql The sequelize object for a raw db query
+   * @param broadcast Whether or not to broadcast an update to all connected clients
+   */
   private async sendCurrentDb(socket: SocketIO.Socket, io: SocketIO.Server, sql: sequelize.Sequelize, broadcast?: boolean) {
     // Do a raw query here because sequelize joins are a pain
     let results;
@@ -258,10 +315,15 @@ class WebsocketsServer {
         });
   }
 
+  /**
+   * Register the socket events that will be sent from the client
+   * @param io Socket.io server
+   * @param sql Sequelize connection
+   * @param User User model
+   * @param Item Item model
+   */
   private registerSocketRoutes(io: SocketIO.Server, sql: sequelize.Sequelize, User: sequelize.Model<any, any>, Item: sequelize.Model<any, any>) {
     io.on('connection', (socket) => {
-      // When a user connects, send the current state of the list to them
-      // sendCurrentDb(socket);
       logger.debug(`${socket.id} User connected`)
 
       // Now register the socket listeners for the various events
@@ -362,17 +424,26 @@ class WebsocketsServer {
         socket.broadcast.emit("deleteRemoteItem", uuid);
       });
 
+      /**
+       * Debug method
+       */
       socket.on('resetList', async () => {
         logger.debug('resetting list');
         await Item.truncate();
         this.sendCurrentDb(socket, io, sql, true);
       });
 
+      /**
+       * Debug method
+       */
       socket.on('showLogs', async () => {
         let items = await Item.findAll({ raw: true });
         logger.debug('Items: ', items);
       });
 
+      /**
+       * Handle completing a list
+       */
       socket.on('completedList', async (userId: string) => {
         let completedItems = await Item.update({ archived: true, checked: true, checked_by: userId }, { where: { archived: false, checked: true } });
         this.sendCurrentDb(socket, io, sql, true);
@@ -390,7 +461,3 @@ class WebsocketsServer {
 
 let server = new Server();
 server.run();
-
-
-
-
